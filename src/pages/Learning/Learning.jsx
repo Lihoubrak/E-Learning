@@ -4,9 +4,13 @@ import { Player } from "video-react";
 import "video-react/dist/video-react.css";
 import { GoHome } from "react-icons/go";
 import { RiVideoFill, RiFileDownloadFill, RiEyeFill } from "react-icons/ri";
-import { FaChevronDown, FaChevronRight } from "react-icons/fa";
+import {
+  FaChevronDown,
+  FaChevronRight,
+  FaFacebookMessenger,
+} from "react-icons/fa";
 import { AiOutlineMenu } from "react-icons/ai";
-import { SubjectDetail } from "../../components";
+import { Message, SubjectDetail } from "../../components";
 import sampleVideo from "../../videos/Happy Khmer New Year 2021.mp4";
 import { HiDocumentText, HiOutlineDocumentText } from "react-icons/hi";
 import axios from "axios";
@@ -15,6 +19,7 @@ import { BsPencilSquare } from "react-icons/bs";
 
 const Learning = () => {
   const { sublesson } = useParams();
+  const [open, setOpen] = useState("message");
   const [videoHeight, setVideoHeight] = useState(0);
   const [sublessons, setSublessons] = useState({});
   const videoRef = useRef();
@@ -22,7 +27,9 @@ const Learning = () => {
   const [isLessonOpen, setIsLessonOpen] = useState(false);
   const [courses, setCourses] = useState({});
   const [lessonOpen, setLessonOpen] = useState({});
-
+  const handleOpen = (state) => {
+    setOpen(state);
+  };
   const handleOpenLesson = (lessonId) => {
     setLessonOpen({ ...lessonOpen, [lessonId]: !lessonOpen[lessonId] });
   };
@@ -66,7 +73,7 @@ const Learning = () => {
   };
 
   return (
-    <SubjectDetail>
+    <SubjectDetail showHeader={true}>
       <div className="mt-24 px-36">
         <div className="flex items-center gap-1 text-blue-500">
           <GoHome size={20} />
@@ -90,13 +97,13 @@ const Learning = () => {
           style={{ height: "700px", overflow: "hidden" }}
         >
           <div className="w-3/4">
-            {/* <Player
+            <Player
               fluid={true}
               src={sampleVideo}
               className="border border-red-600"
               ref={videoRef}
               height={videoHeight}
-            /> */}
+            />
 
             <div className="pt-10 bg-[#f9f9f9] w-full">
               <div>
@@ -123,10 +130,11 @@ const Learning = () => {
               </div>
             </div>
           </div>
+
           <div className="flex-1">
             <div className="bg-[#e6e6e6] py-3 px-4 flex items-center justify-center">
               <AiOutlineMenu size={25} color="blue" className="mr-2" />
-              <span className="text-blue-800 font-semibold flex items-center">
+              <span className="text-blue-800 flex items-center font-bold">
                 Đề cương khóa học
               </span>
             </div>
@@ -138,7 +146,7 @@ const Learning = () => {
                       className="flex justify-between px-3 p-3 items-center cursor-pointer transition duration-300 ease-in-out"
                       onClick={() => handleOpenLesson(lesson.less_id)}
                     >
-                      <h1>{lesson.less_title}</h1>
+                      <h1 className="font-bold">{lesson.less_title}</h1>
                       <span>
                         {lessonOpen[lesson.less_id] ? (
                           <FaChevronDown />
@@ -153,7 +161,7 @@ const Learning = () => {
                       {lesson.Sublessons.map((sublesson) => (
                         <li
                           key={sublesson.subless_id}
-                          className="px-5 cursor-pointer text-red-800 transition-all duration-100 hover:text-black"
+                          className="px-5 cursor-pointer text-gray-700 transition-all duration-100 hover:text-black"
                         >
                           <Link
                             to={`/learnings/sublesson/${sublesson.subless_id}`}
@@ -163,16 +171,22 @@ const Learning = () => {
                             </h1>
                           </Link>
                           <div className="flex gap-x-3">
-                            <div className="flex items-center gap-1">
-                              <RiVideoFill color="blue" />
+                            <div className="flex items-center gap-1 ">
+                              <RiVideoFill
+                                color="blue"
+                                className="opacity-60"
+                              />
                               <span>{sublesson.subless_time}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <RiFileDownloadFill color="blue" />
+                              <RiFileDownloadFill
+                                color="blue"
+                                className="opacity-60"
+                              />
                               <span>{sublesson.subless_video_count}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <RiEyeFill color="blue" />
+                              <RiEyeFill color="blue" className="opacity-60" />
                               <span>{sublesson.subless_video_count}</span>
                             </div>
                           </div>
@@ -181,20 +195,28 @@ const Learning = () => {
                       {lesson.Exams.map((exam) => (
                         <li
                           key={exam.exam_id}
-                          className="px-5 cursor-pointer text-red-800 transition-all duration-100 hover:text-black"
+                          className="px-5 cursor-pointer text-gray-500 transition-all duration-100 hover:text-black"
                         >
-                          <Link to={`/exam/sublesson/${exam.exam_id}`}>
+                          <Link
+                            to={`/learnings/sublesson/exam/quiz/${exam.exam_id}`}
+                          >
                             <h1 className="font-bold text-yellow-500">
                               {exam.ex_title}
                             </h1>
                           </Link>
                           <div className="flex gap-x-3">
                             <div className="flex items-center gap-1">
-                              <AiFillCheckSquare color="blue" />
+                              <AiFillCheckSquare
+                                color="blue"
+                                className="opacity-60"
+                              />
                               <span>{exam.ex_dutation}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <BsPencilSquare color="blue" />
+                              <BsPencilSquare
+                                color="blue"
+                                className="opacity-60"
+                              />
                             </div>
                           </div>
                         </li>
@@ -205,6 +227,52 @@ const Learning = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="border">
+          <div className="border-b-2 flex">
+            {/** Navigation items */}
+            <div
+              onClick={() => handleOpen("message")}
+              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
+                open === "message" ? "bg-blue-500 text-white " : ""
+              }`}
+            >
+              <FaFacebookMessenger />
+              <span>Trao đổi bài</span>
+            </div>
+
+            <div
+              onClick={() => handleOpen("note")}
+              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
+                open === "note" ? "bg-blue-500 text-white " : ""
+              }`}
+            >
+              <FaFacebookMessenger />
+              <span>Ghi chú</span>
+            </div>
+
+            <div
+              onClick={() => handleOpen("notification")}
+              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
+                open === "notification" ? "bg-blue-500 text-white " : ""
+              }`}
+            >
+              <FaFacebookMessenger />
+              <span>Thông báo về khóa học</span>
+            </div>
+
+            <div
+              onClick={() => handleOpen("support")}
+              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
+                open === "support" ? "bg-blue-500 text-white " : ""
+              }`}
+            >
+              <FaFacebookMessenger />
+              <span>Hỗ trợ</span>
+            </div>
+          </div>
+          {open === "message" && <Message />}
         </div>
       </div>
     </SubjectDetail>

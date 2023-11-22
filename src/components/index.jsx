@@ -3,13 +3,15 @@ import Category from "./Category";
 import Course from "./Course";
 import CourseRelation from "./CourseRelattion/CourseRelation";
 import Header from "./Header";
+import Message from "./Message";
+import QuizInfo from "./QuizInfo";
+import QuizQuestions from "./QuizQuestions";
 import ShareIdea from "./ShareIdea";
 import Slide from "./Slide/Slide";
 import SlideCourse from "./Slide/SlideCourse";
 import Subject from "./Subject";
 import SubjectDetail from "./SubjectDetail";
 import Tippy from "./Tippy/Tippy";
-import VideoJS from "./VideoJs/VideoJs";
 
 export {
   Header,
@@ -21,7 +23,9 @@ export {
   Banner,
   Slide,
   SlideCourse,
-  VideoJS,
   CourseRelation,
   SubjectDetail,
+  QuizQuestions,
+  QuizInfo,
+  Message,
 };

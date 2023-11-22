@@ -7,6 +7,7 @@ const Register = () => {
   return (
     <div>
       <Header
+        showHeader={true}
         SubjectDetail={true}
         backgroundColor="#2a70b8"
         loginButtonLabel=" Đăng nhập"

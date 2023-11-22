@@ -9,14 +9,14 @@ import { RiEyeFill, RiFileDownloadFill, RiVideoFill } from "react-icons/ri";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
 import { AiFillCheckSquare } from "react-icons/ai";
 import { BsPencilSquare } from "react-icons/bs";
-// import sampleVideo from "../../videos/Happy Khmer New Year 2021.mp4";
-
+import sampleVideo from "../../videos/Happy Khmer New Year 2021.mp4";
+import { FaStar } from "react-icons/fa";
+import { FaFacebook } from "react-icons/fa";
 const SpecificCourse = () => {
   const { course } = useParams();
   const [courses, setCourses] = useState({});
   const [coursesRelative, setCoursesRelative] = useState([]);
   const [lessonOpen, setLessonOpen] = useState({});
-
   const handleOpenLesson = (lessonId) => {
     setLessonOpen({ ...lessonOpen, [lessonId]: !lessonOpen[lessonId] });
   };
@@ -57,7 +57,7 @@ const SpecificCourse = () => {
   }, [course, courses.cos_category]);
 
   return (
-    <SubjectDetail>
+    <SubjectDetail showHeader={true}>
       <div className="mt-24 px-36">
         <div className="flex items-center gap-x-1">
           <span className="flex gap-x-1 text-blue-500">
@@ -82,7 +82,7 @@ const SpecificCourse = () => {
             </p>
             <div className="flex border">
               <div className="w-3/4">
-                {/* <Player fluid={true} src={sampleVideo} /> */}
+                <Player fluid={true} src={sampleVideo} />
               </div>
               <div className="flex-1">
                 <div className="border-b-2 flex flex-col items-center gap-y-5 p-5">
@@ -93,9 +93,11 @@ const SpecificCourse = () => {
                   <button className="bg-[#ff6c00] font-bold text-white rounded-xl w-[250px] h-12">
                     Học Thử Miễn Phí
                   </button>
-                  <button className="bg-[#ff6c00] font-bold text-white rounded-xl w-[250px] h-12">
-                    Đăng Ký Ngay
-                  </button>
+                  <Link to={"/payment"}>
+                    <button className="bg-[#ff6c00] font-bold text-white rounded-xl w-[250px] h-12">
+                      Đăng Ký Ngay
+                    </button>
+                  </Link>
                 </div>
                 <div>
                   <ul className="mx-5">
@@ -149,7 +151,7 @@ const SpecificCourse = () => {
                           className="flex justify-between px-3 p-3 items-center cursor-pointer transition duration-300 ease-in-out"
                           onClick={() => handleOpenLesson(lesson.less_id)}
                         >
-                          <h1>{lesson.less_title}</h1>
+                          <h1 className="font-bold">{lesson.less_title}</h1>
                           <span>
                             {lessonOpen[lesson.less_id] ? (
                               <FaChevronDown />
@@ -164,7 +166,7 @@ const SpecificCourse = () => {
                           {lesson.Sublessons.map((sublesson) => (
                             <li
                               key={sublesson.subless_id}
-                              className="px-5 cursor-pointer text-red-800 transition-all duration-100 hover:text-black"
+                              className="px-5 cursor-pointer text-gray-700 transition-all duration-100 hover:text-black"
                             >
                               <Link
                                 to={`/learnings/sublesson/${sublesson.subless_id}`}
@@ -176,15 +178,24 @@ const SpecificCourse = () => {
 
                               <div className="flex gap-x-3">
                                 <div className="flex items-center gap-1">
-                                  <RiVideoFill color="blue" />
+                                  <RiVideoFill
+                                    color="blue"
+                                    className="opacity-60"
+                                  />
                                   <span>{sublesson.subless_time}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <RiFileDownloadFill color="blue" />
+                                  <RiFileDownloadFill
+                                    color="blue"
+                                    className="opacity-60"
+                                  />
                                   <span>{sublesson.subless_video_count}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <RiEyeFill color="blue" />
+                                  <RiEyeFill
+                                    color="blue"
+                                    className="opacity-60"
+                                  />
                                   <span>{sublesson.subless_video_count}</span>
                                 </div>
                               </div>
@@ -192,21 +203,29 @@ const SpecificCourse = () => {
                           ))}
                           {lesson.Exams.map((exam) => (
                             <li
-                              key={exam.exam_id}
-                              className="px-5 cursor-pointer text-red-800 transition-all duration-100 hover:text-black"
+                              key={exam.ex_id}
+                              className="px-5 cursor-pointer text-gray-500 transition-all duration-100 hover:text-black"
                             >
-                              <Link to={`/exam/sublesson/${exam.exam_id}`}>
+                              <Link
+                                to={`/learnings/sublesson/exam/quiz/${exam.ex_id}`}
+                              >
                                 <h1 className="font-bold text-yellow-500">
                                   {exam.ex_title}
                                 </h1>
                               </Link>
                               <div className="flex gap-x-3">
                                 <div className="flex items-center gap-1">
-                                  <AiFillCheckSquare color="blue" />
+                                  <AiFillCheckSquare
+                                    color="blue"
+                                    className="opacity-60"
+                                  />
                                   <span>{exam.ex_dutation}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <BsPencilSquare color="blue" />
+                                  <BsPencilSquare
+                                    color="blue"
+                                    className="opacity-60"
+                                  />
                                 </div>
                               </div>
                             </li>
@@ -231,6 +250,135 @@ const SpecificCourse = () => {
                   </Link>
                 ))}
               </ul>
+            </div>
+            <div className="">
+              <div className="space-y-5">
+                <p className="font-bold text-xl">Giới thiệu giáo viên</p>
+                <div className="flex gap-11">
+                  <div className="w-[110px] h-[150px]">
+                    <img
+                      src="	https://hocmai.vn/file.php/1/Avatar-le-khanh-vy.png"
+                      alt=""
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+
+                  <div className="text-xl break-words tracking-tight w-10/12 font-semibold text-gray-600">
+                    <h1 className="font-bold">Lê Khánh Vy -</h1>
+                    <p>
+                      Với cô, niềm vui của học sinh khi học được kiến thức mới
+                      và vận dụng tốt những kiến thức đó vào thực tế cuộc sống
+                      là sự thành công.
+                    </p>
+                    <div className="cursor-pointer">
+                      <FaFacebook color="#5f8dc3" size={30} />
+                    </div>
+                  </div>
+                </div>
+                <ul className="text-xl break-words tracking-tight w-10/12 font-semibold text-gray-600 ml-10">
+                  <li className="list-disc">
+                    Cô tốt nghiệp loại Giỏi - khoa Toán, Trường Đại học Sư phạm
+                    Thành phố Hồ Chí Minh và nhận chứng chỉ dạy học Cambridge
+                    Checkpoint do Cambridge University cấp;
+                  </li>
+                  <li className="list-disc">
+                    Cô đã từng đạt giải ba môn Vật lý cấp Thành phố năm 2012,
+                    giải ba môn Vật lý cấp Thành phố năm 2015.
+                  </li>
+                </ul>
+                <Link to={"/teacher"}>
+                  <div className="font-bold text-blue-600 text-xl border-b-4 py-5  cursor-pointer">
+                    Thông tin chi tiết
+                  </div>
+                </Link>
+              </div>
+
+              <div className="flex gap-5 border-b-4 py-5">
+                <div className="text-[#f39c12] font-semibold">
+                  <p className="text-xl">Nhận xét </p>
+                  <p className="text-xl">Đánh giá trung bình</p>
+                  <p className="text-9xl">4.9</p>
+                  <div className="flex items-center">
+                    <FaStar size={35} />
+                    <FaStar size={35} />
+                    <FaStar size={35} />
+                    <FaStar size={35} />
+                    <FaStar size={35} />
+                  </div>
+                </div>
+
+                <div className="text-[#f39c12] font-semibold">
+                  <p className="text-xl">Chi tiết</p>
+
+                  <div className=""></div>
+                </div>
+              </div>
+
+              <div className="flex  gap-11 border-b-4 py-5">
+                <div>
+                  <div className="h-16 w-16 ">
+                    <img
+                      src="https://hocmai.vn/user/pix.php/6668723/f1.jpg"
+                      alt=""
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-xl font-thin mb-2">Trương Minh Thắng</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar key={star} size={20} color="#f39c12" />
+                      ))}
+                    </div>
+                    <p className="text-xl">27/09/2023</p>
+                  </div>
+                  <p className="text-xl break-words tracking-tight w-10/12 ">
+                    Bài ở đây giáo viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở
+                    đây giáo viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây
+                    giáo viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo
+                    viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên
+                    giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên giảng
+                    rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên giảng rất
+                    rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên giảng rất rõ
+                    ràng, tui chấm 5 sao.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex  gap-11 border-b-4 py-5">
+                <div>
+                  <div className="h-16 w-16 ">
+                    <img
+                      src="https://hocmai.vn/user/pix.php/6668723/f1.jpg"
+                      alt=""
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-xl font-thin mb-2">Trương Minh Thắng</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar key={star} size={20} color="#f39c12" />
+                      ))}
+                    </div>
+                    <p className="text-xl">27/09/2023</p>
+                  </div>
+                  <p className="text-xl break-words tracking-tight w-10/12 ">
+                    Bài ở đây giáo viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở
+                    đây giáo viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây
+                    giáo viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo
+                    viên giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên
+                    giảng rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên giảng
+                    rất rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên giảng rất
+                    rõ ràng, tui chấm 5 sao. Bài ở đây giáo viên giảng rất rõ
+                    ràng, tui chấm 5 sao.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -4,4 +4,8 @@ export const configRouter = {
   login: "/login",
   specificCourse: "/specificCourse/:course",
   learnings: "/learnings/sublesson/:sublesson",
+  quiz: "/learnings/sublesson/exam/quiz/:exam",
+  payment: "/payment/",
+  profile: "/profile",
+  teacher: "/teacher",
 };

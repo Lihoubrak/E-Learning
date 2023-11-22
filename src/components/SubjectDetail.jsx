@@ -3,10 +3,22 @@ import React, { useEffect, useState } from "react";
 import Footer from "../pages/Footer/Footer";
 import Header from "./Header";
 
-const SubjectDetail = ({ children }) => {
+const SubjectDetail = ({
+  children,
+  scrollY,
+  quiz,
+  showHeader,
+  examTime,
+  submitAnswers,
+}) => {
   return (
     <div>
       <Header
+        submitAnswers={submitAnswers}
+        showHeader={showHeader}
+        scrollY={scrollY}
+        examTime={examTime}
+        quiz={quiz}
         SubjectDetail={true}
         backgroundColor="#2a70b8"
         loginButtonLabel=" Đăng nhập"

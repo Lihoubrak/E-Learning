@@ -1,12 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { Header } from "../../components";
 import Footer from "../Footer/Footer";
 import { AiFillFacebook, AiFillGoogleCircle } from "react-icons/ai";
-
+import { publicRequest } from "../../RequestMethod/Request";
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    publicRequest
+      .post("/users/login", { email, password })
+      .then((response) => {
+        console.log("Login successful", response.data);
+        window.location.href = "/";
+      })
+      .catch((error) => {
+        // Handle login error
+        console.error("Login failed", error);
+      });
+  };
+
   return (
     <div>
       <Header
+        showHeader={true}
         SubjectDetail={true}
         backgroundColor="#2a70b8"
         loginButtonLabel=" Đăng nhập"
@@ -44,15 +61,22 @@ const Login = () => {
         <div className="mt-4 flex flex-col items-center w-[500px]">
           <input
             type="text"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full p-3 rounded-lg border border-gray-400 mb-3 outline-none"
             placeholder="Email"
           />
           <input
             type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 rounded-lg border border-gray-400 mb-4 outline-none"
             placeholder="Mật khẩu"
           />
-          <button className="bg-[#2a70b8] text-white p-3 rounded-lg w-full hover:bg-blue-500">
+          <button
+            onClick={handleLogin}
+            className="bg-[#2a70b8] text-white p-3 rounded-lg w-full hover:bg-blue-500"
+          >
             Đăng Nhập
           </button>
           <p className="text-blue-500 mt-2 cursor-pointer">Quên mật khẩu?</p>

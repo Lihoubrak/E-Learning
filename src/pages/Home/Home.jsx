@@ -139,6 +139,7 @@ const Home = () => {
   return (
     <>
       <Header
+        showHeader={true}
         loginButtonLabel=" Đăng nhập"
         registerButtonLabel="Đăng ký"
         phoneNumber={"1900 6933"}
