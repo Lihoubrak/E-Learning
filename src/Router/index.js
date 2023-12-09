@@ -9,6 +9,10 @@ import {
   Payment,
   Profile,
   Teacher,
+  CourseCategory,
+  CourseMe,
+  HistoryLearn,
+  ForgetPassword,
 } from "../pages";
 
 const publicRoute = [
@@ -21,6 +25,10 @@ const publicRoute = [
   { path: configRouter.payment, component: Payment },
   { path: configRouter.profile, component: Profile },
   { path: configRouter.teacher, component: Teacher },
+  { path: configRouter.CourseCategory, component: CourseCategory },
+  { path: configRouter.CourseMe, component: CourseMe },
+  { path: configRouter.HistoryLearn, component: HistoryLearn },
+  { path: configRouter.ForgetPassword, component: ForgetPassword },
 ];
 
 export { publicRoute };

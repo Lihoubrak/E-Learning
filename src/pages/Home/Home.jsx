@@ -34,99 +34,24 @@ const Home = () => {
     image9,
     image10,
   ];
-  // const courses = [
-  //   {
-  //     id: 1,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  //   {
-  //     id: 4,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  //   {
-  //     id: 5,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  //   {
-  //     id: 6,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  //   {
-  //     id: 7,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  //   {
-  //     id: 8,
-  //     title: "C-Programming",
-  //     teacher: "Socheat",
-  //     videoCount: 3000,
-  //     questionCount: 3000,
-  //     imageUrl:
-  //       "https://hocmai.vn/course/images/pat-i-vnuhcm-luyen-giai-de-1664853341.png",
-  //   },
-  // ];
   const [courses, setCourses] = useState([]);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/courses");
-        setCourses(response.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axios.get("http://localhost:3000/api/courses");
+  //       setCourses(response.data);
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //     }
+  //   };
 
-    fetchData();
-  }, []);
+  //   fetchData();
+  // }, []);
 
   const highSchoolCourses = courses.filter(
     (course) =>
       course.SubCategory.Category.category_name.trim() === "High School"
   );
-  console.log(courses);
   const middleSchoolCourses = courses.filter(
     (course) =>
       course.SubCategory.Category.category_name.trim() === "University School"

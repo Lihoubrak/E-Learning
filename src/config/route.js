@@ -8,4 +8,8 @@ export const configRouter = {
   payment: "/payment/",
   profile: "/profile",
   teacher: "/teacher",
+  CourseCategory: "/courseCategory",
+  CourseMe: "/courseMe",
+  HistoryLearn: "/HistoryLearn",
+  ForgetPassword: "/ForgetPassword",
 };

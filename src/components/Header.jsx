@@ -23,15 +23,16 @@ const Header = ({
   quiz,
   examTime,
   submitAnswers,
+  colorKhoaIcon,
 }) => {
-  const user = true;
+  const user = false;
   return (
     <header>
       {(scrollY || showHeader) && (
         <div
           className={`${
-            SubjectDetail ? "px-52" : "px-20"
-          } py-2 flex justify-between items-center shadow-lg shadow-zinc-200 bg-white fixed w-full top-0 z-30 `}
+            SubjectDetail ? "px-32" : "px-20"
+          } py-2 flex justify-between items-center shadow-md shadow-zinc-200 bg-white fixed w-full top-0 z-30 `}
           style={{ backgroundColor: backgroundColor }}
         >
           <div className="flex items-center">
@@ -85,18 +86,29 @@ const Header = ({
             )}
           </div>
 
-          <div className="flex gap-5 items-center">
+          <div className="flex gap-5 items-center ">
             {user ? (
               <>
-                <div className="flex items-center cursor-pointer hover:text-blue-500">
-                  <FaBookMedical size={30} color="#888888" />
-                  <span className="ml-2 text-lg font-semibold">
-                    Khóa học của tôi
-                  </span>
-                </div>
+                <Link to={"/courseMe"}>
+                  <div className="flex items-center cursor-pointer hover:text-blue-500">
+                    <FaBookMedical
+                      size={30}
+                      color={!!colorKhoaIcon ? "white" : "#6b7280"}
+                    />
+
+                    <span
+                      className={`ml-2 
+                        ${!!colorKhoaIcon && "text-white"}
+                        text-gray-500
+                        text-lg font-semibold`}
+                    >
+                      Khóa học của tôi
+                    </span>
+                  </div>
+                </Link>
                 <IoIosNotifications
                   size={30}
-                  color="#888888"
+                  color="#FFFFFF"
                   className="cursor-pointer"
                 />
                 <Tippy interactive render={(attrs) => <TippyProfile />}>

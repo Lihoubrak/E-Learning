@@ -12,8 +12,9 @@ const SubjectDetail = ({
   submitAnswers,
 }) => {
   return (
-    <div>
+    <div className="bg-[#f5f8fa]">
       <Header
+        colorKhoaIcon={"#6b7280"}
         submitAnswers={submitAnswers}
         showHeader={showHeader}
         scrollY={scrollY}
