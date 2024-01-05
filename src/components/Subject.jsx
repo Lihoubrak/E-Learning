@@ -31,7 +31,7 @@ const Subject = () => {
             placement="right-start"
             interactive
             render={(attrs) => (
-              <HeadlessTippy subcategory={sub.SubCategories} />
+              <HeadlessTippy categoryFirsts={sub.categoryFirsts} />
             )}
             key={index}
           >
@@ -43,7 +43,7 @@ const Subject = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <p className="ml-2">{sub.category_name}</p>
+              <p className="ml-2">{sub.categoryName}</p>
             </li>
           </Tippy>
         ))}

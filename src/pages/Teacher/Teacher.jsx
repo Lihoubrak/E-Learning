@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { SubjectDetail } from "../../components";
 import { IoBookOutline, IoPerson } from "react-icons/io5";
 import { IoIosShareAlt } from "react-icons/io";
@@ -7,11 +7,29 @@ import { AiOutlineLike } from "react-icons/ai";
 import teacerImage from "../../assets/images/teacher.png";
 import { RiInboxArchiveFill } from "react-icons/ri";
 import { FaFacebook, FaGraduationCap } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+import { publicRequest } from "../../RequestMethod/Request";
 
 const Teacher = () => {
+  const { teacherId } = useParams();
+  const [teacher, setTeacher] = useState(null);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  useEffect(() => {
+    const fetchTeacherDetails = async () => {
+      try {
+        const response = await publicRequest.get(`/users/${teacherId}`);
+        setTeacher(response.data);
+      } catch (error) {
+        console.error("Error fetching teacher details:", error);
+      }
+    };
+    fetchTeacherDetails();
+  }, [teacherId]);
   return (
     <SubjectDetail showHeader={true}>
-      <div className="mt-24 px-52">
+      <div className="pt-24 px-52">
         <div className="flex justify-between">
           {/* Logo */}
           <div className="w-[60px] h-[60px] cursor-pointer">
@@ -40,10 +58,12 @@ const Teacher = () => {
           <div className="flex gap-5 justify-center">
             {/* Teacher Details */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-extralight border-black ">CÔ</h1>
+              <h1 className="text-3xl font-extralight border-black ">
+                {teacher?.sex === "M" ? "THẦY" : "CÔ"}
+              </h1>
               <div className="h-1 bg-black "></div>
               <h1 className="text-5xl text-[#0067b4] font-bold text-center">
-                LE KHANH VY
+                {teacher?.username}
               </h1>
               <div className="flex items-center">
                 <div className="h-1 bg-black flex-grow"></div>
@@ -51,7 +71,7 @@ const Teacher = () => {
                 <div className="h-1 bg-black flex-grow"></div>
               </div>
               <h1 className="text-3xl font-extralight  border-black text-center">
-                GIAO VIEN TOAN
+                {teacher?.subjectTaught}
               </h1>
             </div>
 
@@ -116,7 +136,7 @@ const Teacher = () => {
               <IoPerson className="text-[#0871b9] mr-2" size={40} />
               <div>
                 <h1 className="text-lg font-bold">Họ và tên</h1>
-                <p>LÊ KHÁNH VY</p>
+                <p>{teacher?.username}</p>
               </div>
             </div>
 
@@ -125,7 +145,7 @@ const Teacher = () => {
               <CiLocationOn className="text-[#0871b9] mr-2" size={40} />
               <div>
                 <h1 className="text-lg font-bold">Nơi công tác:</h1>
-                <p>HỆ THỐNG GIÁO DỤC HOCMAI</p>
+                <p>{teacher?.workplace}</p>
               </div>
             </div>
 
@@ -136,7 +156,7 @@ const Teacher = () => {
                 <IoBookOutline className="text-[#0871b9] mr-2" size={40} />
                 <div>
                   <h1 className="text-lg font-bold">Môn dạy:</h1>
-                  <p>TOÁN</p>
+                  <p>{teacher?.subjectTaught}</p>
                 </div>
               </div>
 
@@ -145,7 +165,7 @@ const Teacher = () => {
                 <FaGraduationCap className="text-[#0871b9] mr-2" size={40} />
                 <div>
                   <h1 className="text-lg font-bold">Học vị:</h1>
-                  <p>CỬ NHÂN</p>
+                  <p>{teacher?.academicDegree}</p>
                 </div>
               </div>
             </div>
@@ -157,7 +177,7 @@ const Teacher = () => {
                 <RiInboxArchiveFill className="text-[#0871b9] mr-2" size={40} />
                 <div>
                   <h1 className="text-lg font-bold">Email:</h1>
-                  <p>gv.vylk@hocmai.edu.vn</p>
+                  <p>{teacher?.email}</p>
                 </div>
               </div>
 
@@ -166,7 +186,7 @@ const Teacher = () => {
                 <FaFacebook className="text-[#0871b9] mr-2" size={40} />
                 <div>
                   <h1 className="text-lg font-bold">Facebook:</h1>
-                  <p>https://www.facebook.com/kh</p>
+                  <p>{teacher?.facebookId}</p>
                 </div>
               </div>
             </div>

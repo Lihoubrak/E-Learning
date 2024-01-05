@@ -5,7 +5,7 @@ const Course = (props) => {
   const { title, teacher, videoCount, questionCount, imageUrl } = props;
 
   return (
-    <div className="group min-h-[280px] shadow-lg cursor-pointer relative">
+    <div className="group min-h-[280px] border rounded-lg overflow-hidden cursor-pointer relative">
       <div className="min-h-[150px]">
         <img src={imageUrl} alt="" className="w-full h-full object-cover" />
       </div>

@@ -3,15 +3,16 @@ import { Header } from "../../components";
 import Footer from "../Footer/Footer";
 import { AiFillFacebook, AiFillGoogleCircle } from "react-icons/ai";
 import { publicRequest } from "../../RequestMethod/Request";
+import { Link } from "react-router-dom";
+import Cookies from "js-cookie";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const handleLogin = () => {
     publicRequest
       .post("/users/login", { email, password })
       .then((response) => {
-        console.log("Login successful", response.data);
+        Cookies.set("token", response.data.token, { expires: 7 });
         window.location.href = "/";
       })
       .catch((error) => {
@@ -79,7 +80,9 @@ const Login = () => {
           >
             Đăng Nhập
           </button>
-          <p className="text-blue-500 mt-2 cursor-pointer">Quên mật khẩu?</p>
+          <Link to={"/ForgetPassword"}>
+            <p className="text-blue-500 mt-2 cursor-pointer">Quên mật khẩu?</p>
+          </Link>
         </div>
       </div>
       <Footer />

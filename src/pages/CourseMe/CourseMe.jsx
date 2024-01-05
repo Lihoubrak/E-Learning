@@ -1,13 +1,43 @@
-import React, { useState } from "react";
-import { SubjectDetail } from "../../components";
+import React, { useEffect, useState } from "react";
+import { Course, SubjectDetail } from "../../components";
 import { BiHome } from "react-icons/bi";
 import { IoIosArrowForward } from "react-icons/io";
 import HistoryLearn from "../HistoryLearn/HistoryLearn";
+import { TokenRequest } from "../../RequestMethod/Request";
+import { Link } from "react-router-dom";
 const CourseMe = () => {
   const [activeItem, setActiveItem] = useState("khoaHoc");
-
+  const [enrollmentCourse, setEnrollmentCourse] = useState([]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const fectCourse = async () => {
+      const res = await TokenRequest.get("/enrollments/courses");
+      console.log(res.data);
+      setEnrollmentCourse(res.data);
+    };
+    fectCourse();
+  }, []);
   const handleItemClick = (item) => {
     setActiveItem(item);
+  };
+  // Helper function to count sublessons
+  const countSubLessons = (lessions) => {
+    let subLessonCount = 0;
+    lessions.forEach((lesson) => {
+      subLessonCount += lesson.subLessions.length;
+    });
+    return subLessonCount;
+  };
+
+  // Helper function to count questions
+  const countQuestions = (lessions) => {
+    let questionCount = 0;
+    lessions.forEach((lesson) => {
+      lesson.subLessions.forEach((subLesson) => {
+        questionCount += subLesson.comments.length;
+      });
+    });
+    return questionCount;
   };
   return (
     <SubjectDetail showHeader={true}>
@@ -37,7 +67,7 @@ const CourseMe = () => {
         </div>
         <div className="flex px-32 mt-10 gap-5">
           <div className="w-1/5">
-            <div className="text-center bg-blue-600 p-5 rounded-md">
+            <div className="text-center bg-blue-600 p-5 py-12 rounded-md">
               <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden">
                 <img
                   src="https://hocmai.vn/pix/u/f1.png"
@@ -148,7 +178,36 @@ const CourseMe = () => {
                     </select>
                   </div>
                 </div>
-                <div className="mx-4 mt-4">Course</div>
+                <div className="mx-4 mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
+                  {enrollmentCourse &&
+                    enrollmentCourse.length > 0 &&
+                    enrollmentCourse.map((enrollment) => (
+                      <Link
+                        key={enrollment.id}
+                        to={`/learnings/sublesson/${enrollment.course.lessions[0]?.subLessions[0]?.id}`}
+                      >
+                        <div className="max-w-sm rounded overflow-hidden shadow-lg">
+                          <Course
+                            title={enrollment.course.courseName}
+                            teacher={enrollment.course.user.username}
+                            videoCount={countSubLessons(
+                              enrollment.course.lessions
+                            )}
+                            questionCount={countQuestions(
+                              enrollment.course.lessions
+                            )}
+                            imageUrl={enrollment.course.courseImage}
+                          />
+                        </div>
+                      </Link>
+                    ))}
+                  {
+                    !enrollmentCourse ||
+                      (enrollmentCourse.length === 0 && (
+                        <p>No courses available.</p>
+                      )) /* Display a message when there are no courses */
+                  }
+                </div>
               </>
             )}
             {activeItem == "hoctap" && <HistoryLearn />}

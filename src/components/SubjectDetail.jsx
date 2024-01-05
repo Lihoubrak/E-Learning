@@ -10,12 +10,14 @@ const SubjectDetail = ({
   showHeader,
   examTime,
   submitAnswers,
+  setIsQuizPaused,
 }) => {
   return (
     <div className="bg-[#f5f8fa]">
       <Header
         colorKhoaIcon={"#6b7280"}
         submitAnswers={submitAnswers}
+        setIsQuizPaused={setIsQuizPaused}
         showHeader={showHeader}
         scrollY={scrollY}
         examTime={examTime}

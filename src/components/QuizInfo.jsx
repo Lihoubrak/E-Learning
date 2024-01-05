@@ -1,10 +1,23 @@
 import React from "react";
 
-const QuizInfo = () => {
+const QuizInfo = ({
+  correctAnswers,
+  totalQuestions,
+  remainingTime,
+  totalMarks,
+}) => {
+  const displayRemainingTime = () => {
+    // Convert remaining time to minutes and seconds
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = remainingTime % 60;
+    return `${minutes} phút ${seconds} giây`;
+  };
   return (
     <div>
-      <div className="max-w-2xl mx-auto mt-8 mb-8 p-4 bg-white rounded-md shadow-md">
-        <h1 className="text-3xl font-bold text-red-500 mb-4">0 điểm</h1>
+      <div className="max-w-2xl mx-auto  mb-8 p-4 bg-white rounded-md shadow-md">
+        <h1 className="text-3xl font-bold text-red-500 mb-4">
+          {totalMarks} điểm
+        </h1>
         <p className="text-gray-700 mb-4">
           Chào Bạn! Điểm bài kiểm tra đầu vào của bạn đang ở mức: dưới 60 điểm
           (theo thang điểm 100). Với kết quả này, HOCMAI thấy rằng Bạn chưa nắm
@@ -26,11 +39,15 @@ const QuizInfo = () => {
         <div className="flex justify-between">
           <div>
             <p className="text-gray-600">Số câu đúng</p>
-            <p className="text-lg font-bold text-green-500">0/20</p>
+            <p className="text-lg font-bold text-green-500">
+              {correctAnswers}/{totalQuestions}
+            </p>
           </div>
           <div>
             <p className="text-gray-600">Thời gian hoàn thành</p>
-            <p className="text-lg font-bold text-indigo-500">38 phút 31 giây</p>
+            <p className="text-lg font-bold text-indigo-500">
+              {displayRemainingTime()}
+            </p>
           </div>
         </div>
       </div>

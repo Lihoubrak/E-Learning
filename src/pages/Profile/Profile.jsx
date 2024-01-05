@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+// Profile.jsx
+import React, { useState, useEffect, useContext } from "react";
 import { SubjectDetail } from "../../components";
-import ProfileDetail from "./ProfileDetail";
 import PaymentTransaction from "../Payment/PaymentTransaction";
 import NotificationSettings from "./NotificationSettings";
 import PasswordChange from "./PasswordChange";
+import ProfileDetail from "./ProfileDetail";
 import PaymentSummary from "../Payment/PaymentSummary";
+
+import { Button, Dialog, IconButton } from "@mui/material";
+import { TokenRequest } from "../../RequestMethod/Request";
+import UpdateUserContext from "../../context/UpdateUserContext";
+
 const data = [
   [
     "1801204",
@@ -32,8 +38,13 @@ const data = [
   ],
   // Add more rows as needed
 ];
+
 const tabs = [
-  { key: "profile", label: "Thông tin cá nhân", component: <ProfileDetail /> },
+  {
+    key: "profile",
+    label: "Thông tin cá nhân",
+    component: <ProfileDetail />,
+  },
   {
     key: "notifications",
     label: "Nhận thông báo",
@@ -52,11 +63,11 @@ const tabs = [
   // Add more tabs as needed
 ];
 
-const ProfileTabs = ({ activeItem, handleItemClick }) => {
+const ProfileTabs = ({ activeItem, handleItemClick, user }) => {
   return (
     <div className="w-1/5 text-center relative">
-      <h1 className="text-2xl font-bold">User's Name</h1>
-      <p className="text-gray-500">dcan38802@gmail.com</p>
+      <h1 className="text-2xl font-bold">{user?.username}</h1>
+      <p className="text-gray-500">{user?.email}</p>
       <ul className="mt-4 space-y-2 bg-white border py-4 px-1">
         {tabs.map((tab) => (
           <li
@@ -76,9 +87,9 @@ const ProfileTabs = ({ activeItem, handleItemClick }) => {
   );
 };
 
-const ProfileContent = ({ activeItem }) => {
+const ProfileContent = ({ activeItem, user }) => {
   const components = {
-    profile: <ProfileDetail />,
+    profile: <ProfileDetail user={user} />,
     notifications: <NotificationSettings />,
     password: <PasswordChange />,
     paymentHistory: (
@@ -102,9 +113,58 @@ const ProfileContent = ({ activeItem }) => {
 
 const Profile = () => {
   const [activeItem, setActiveItem] = useState("profile");
+  const [user, setUser] = useState(null);
+  const [newImage, setNewImage] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const { setChange, isChange } = useContext(UpdateUserContext);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await TokenRequest.get(`/users/infouser`);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
 
+    fetchUserData();
+  }, [isChange]);
+  const handleOpenModal = () => {
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+  const handleImageChange = (newImage) => {
+    setNewImage(newImage);
+  };
+
+  const handleImageUrlChange = (imageUrl) => {
+    setImageUrl(imageUrl);
+  };
   const handleItemClick = (item) => {
     setActiveItem(item);
+  };
+  const handleUpdate = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", newImage);
+      const res = await TokenRequest.put(
+        "/users/change",
+        { formData, imageUrl },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      setChange(true);
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+    }
   };
 
   return (
@@ -140,17 +200,67 @@ const Profile = () => {
           {/* Add more list items as needed */}
         </ul>
 
-        <div className="absolute ml-20 bottom-0 w-[160px] h-[160px] mb-4">
-          <img
-            src="https://hocmai.vn/pix/u/f1.png"
-            alt="Profile Picture"
-            className="w-full h-full object-cover"
-          />
-          <img
-            src="https://hocmai.vn/user/profile/asset/img/camera.png"
-            alt="Edit Profile Picture"
-            className="absolute bottom-0 right-0 w-8 h-8 cursor-pointer"
-          />
+        <div className="absolute ml-20 bottom-0  mb-4">
+          <IconButton onClick={handleOpenModal} className="w-[160px] h-[160px]">
+            <img
+              src={user && user.avatar}
+              alt="Profile Picture"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </IconButton>
+          <Dialog
+            open={isModalOpen}
+            onClose={handleCloseModal}
+            className="max-w-[400px] mx-auto"
+          >
+            {/* Content for the modal */}
+            <div className="p-4">
+              <div className="mb-4">
+                <label
+                  htmlFor="imageInput"
+                  className="block text-sm font-medium text-gray-600"
+                >
+                  Upload Image
+                </label>
+                <input
+                  type="file"
+                  id="imageInput"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange(e.target.files[0])}
+                  className="mt-1 p-2 w-full border rounded"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="imageUrl"
+                  className="block text-sm font-medium text-gray-600"
+                >
+                  or Paste Image URL
+                </label>
+                <input
+                  type="text"
+                  id="imageUrl"
+                  placeholder="https://example.com/image.jpg"
+                  className="mt-1 p-2 w-full border rounded"
+                  onChange={(e) => handleImageUrlChange(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleUpdate}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md mr-2"
+                >
+                  Update
+                </Button>
+                <Button
+                  onClick={handleCloseModal}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Dialog>
         </div>
       </div>
 
@@ -158,8 +268,9 @@ const Profile = () => {
         <ProfileTabs
           activeItem={activeItem}
           handleItemClick={handleItemClick}
+          user={user}
         />
-        <ProfileContent activeItem={activeItem} />
+        <ProfileContent activeItem={activeItem} user={user} />
       </div>
     </SubjectDetail>
   );

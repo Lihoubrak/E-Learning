@@ -1,87 +1,190 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Player } from "video-react";
 import "video-react/dist/video-react.css";
-import { GoHome } from "react-icons/go";
-import { RiVideoFill, RiFileDownloadFill, RiEyeFill } from "react-icons/ri";
 import {
+  FaFacebookMessenger,
   FaChevronDown,
   FaChevronRight,
-  FaFacebookMessenger,
 } from "react-icons/fa";
-import { AiOutlineMenu } from "react-icons/ai";
-import { Message, SubjectDetail } from "../../components";
-import sampleVideo from "../../videos/Happy Khmer New Year 2021.mp4";
+import { GoHome } from "react-icons/go";
 import { HiDocumentText, HiOutlineDocumentText } from "react-icons/hi";
-import axios from "axios";
-import { AiFillCheckSquare } from "react-icons/ai";
+import { RiVideoFill, RiFileDownloadFill, RiEyeFill } from "react-icons/ri";
+import { AiOutlineMenu, AiFillCheckSquare } from "react-icons/ai";
 import { BsPencilSquare } from "react-icons/bs";
+import { publicRequest } from "../../RequestMethod/Request";
+import { Message, SubjectDetail } from "../../components";
 
 const Learning = () => {
-  const { sublesson } = useParams();
-  const [open, setOpen] = useState("message");
+  const { sublesson: sublessonParam } = useParams();
+  const [openTab, setOpenTab] = useState("message");
   const [videoHeight, setVideoHeight] = useState(0);
-  const [sublessons, setSublessons] = useState({});
+  const [sublessonData, setSublessonData] = useState({});
   const videoRef = useRef();
-  const staticContentRef = useRef();
-  const [isLessonOpen, setIsLessonOpen] = useState(false);
-  const [courses, setCourses] = useState({});
-  const [lessonOpen, setLessonOpen] = useState({});
-  const handleOpen = (state) => {
-    setOpen(state);
+  const [coursesData, setCoursesData] = useState({});
+  const [openLessons, setOpenLessons] = useState({});
+  const handleOpenTab = (tab) => {
+    setOpenTab(tab);
   };
+
   const handleOpenLesson = (lessonId) => {
-    setLessonOpen({ ...lessonOpen, [lessonId]: !lessonOpen[lessonId] });
+    setOpenLessons((prevOpenLessons) => ({
+      ...prevOpenLessons,
+      [lessonId]: !prevOpenLessons[lessonId],
+    }));
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const response = await axios.get(
-        `http://localhost:3000/api/sublessons/${sublesson}`
-      );
-      setSublessons(response.data);
-    };
-    fetchData();
-  }, [sublesson]);
-
-  useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchSublessonData = async () => {
       try {
-        if (sublessons.Lesson) {
-          const response = await axios.get(
-            `http://localhost:3000/api/courses/course/${sublessons.Lesson.less_course}`
-          );
-          setCourses(response.data);
-        }
+        const response = await publicRequest.get(
+          `sublessions/${sublessonParam}`
+        );
+        setSublessonData(response.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching sublesson data:", error);
       }
     };
-    fetchCourse();
-  }, [sublesson, sublessons.Lesson]);
+
+    fetchSublessonData();
+    window.scrollTo(0, 0);
+  }, [sublessonParam]);
+  useEffect(() => {
+    if (coursesData?.lessions) {
+      const initialLessonOpenState = {};
+      coursesData.lessions.forEach((lesson) => {
+        initialLessonOpenState[lesson.id] = true;
+      });
+      setOpenLessons(initialLessonOpenState);
+    }
+  }, [coursesData]);
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      try {
+        const courseId = sublessonData?.lession?.courseId;
+        if (courseId) {
+          const response = await publicRequest.get(`/courses/${courseId}`);
+          setCoursesData(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching course data:", error);
+      }
+    };
+
+    fetchCourseData();
+  }, [sublessonData?.lession?.courseId]);
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.subscribeToStateChange(handleStateChange);
+      videoRef.current.subscribeToStateChange(handleVideoStateChange);
     }
   }, []);
-
-  const handleStateChange = (state) => {
+  const handleVideoStateChange = (state) => {
     if (state.videoHeight !== videoHeight) {
       setVideoHeight(state.videoHeight);
     }
   };
 
+  // Memoized lesson content
+  const memoizedContent = useMemo(() => {
+    return (
+      <div className="py-1 h-full overflow-y-auto space-y-1">
+        {coursesData?.lessions?.map((lesson) => (
+          <div key={lesson.id}>
+            <div className="bg-[#e6e6e6] rounded-l-sm">
+              <div
+                className="flex justify-between px-3 p-3 items-center cursor-pointer transition duration-300 ease-in-out"
+                onClick={() => handleOpenLesson(lesson.id)}
+              >
+                <h1 className="font-bold text-gray-600">
+                  {lesson.lessionTilte}
+                </h1>
+                <span>
+                  {openLessons[lesson.id] ? (
+                    <FaChevronDown />
+                  ) : (
+                    <FaChevronRight />
+                  )}
+                </span>
+              </div>
+            </div>
+            {openLessons[lesson.id] && (
+              <ul className="flex flex-col gap-2 py-3">
+                {lesson.subLessions.map((sublesson) => (
+                  <li
+                    key={sublesson.id}
+                    className="px-5 cursor-pointer text-gray-700 transition-all duration-100 hover:text-black"
+                  >
+                    <Link to={`/learnings/sublesson/${sublesson.id}`}>
+                      <h1 className="font-bold ">
+                        {sublesson.subLessionTitle}
+                      </h1>
+                    </Link>
+                    <div className="flex gap-x-3">
+                      <div className="flex items-center gap-1 ">
+                        <RiVideoFill color="blue" className="opacity-60" />
+                        <span>{sublesson.subLessionTime}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <a href={sublesson.subLessionFile} download>
+                          <RiFileDownloadFill
+                            color="blue"
+                            className="opacity-60"
+                          />
+                        </a>
+                        <span>1</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <RiEyeFill color="blue" className="opacity-60" />
+                        <span>{sublesson.subLessionView}</span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+                {lesson.quizzes?.map((quizz) => (
+                  <li
+                    key={quizz.id}
+                    className="px-5 cursor-pointer text-gray-500 transition-all duration-100 hover:text-black"
+                  >
+                    <Link to={`/learnings/sublesson/exam/quiz/${quizz.id}`}>
+                      <h1 className="font-bold text-yellow-500">
+                        {quizz.quizName}
+                      </h1>
+                    </Link>
+                    <div className="flex gap-x-3">
+                      <div className="flex items-center gap-1">
+                        <AiFillCheckSquare
+                          color="blue"
+                          className="opacity-60"
+                        />
+                        <span>{quizz.quizDuration}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <BsPencilSquare color="blue" className="opacity-60" />
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }, [coursesData?.lessions, openLessons]);
   return (
     <SubjectDetail showHeader={true}>
-      <div className="mt-24 px-36">
+      <div className="pt-20 px-36">
         <div className="flex items-center gap-1 text-blue-500">
           <GoHome size={20} />
           <span>Trang chủ</span>
           <span className="text-blue-500">{" > "}</span>
-          <span>{sublessons.Lesson?.less_title}</span>
+          <span>{sublessonData?.lession?.lessionTilte}</span>
           <span className="text-blue-500">{" > "}</span>
-          <span className="text-black">{sublessons.Lesson?.less_title}</span>
+          <span className="text-blue-500">
+            {sublessonData?.lession?.lessionTilte}-
+            {sublessonData?.lession?.course.user.username}
+          </span>
         </div>
         <div className="py-4 px-20 flex justify-center">
           <img
@@ -89,8 +192,9 @@ const Learning = () => {
             alt=""
           />
         </div>
-        <h1 className="text-2xl font-bold py-5">
-          {sublessons.Lesson?.less_title}
+        <h1 className="text-2xl font-bold py-5 text-gray-600">
+          {sublessonData?.lession?.lessionTilte}-
+          {sublessonData?.lession?.course.user.username}
         </h1>
         <div
           className="flex border"
@@ -99,8 +203,7 @@ const Learning = () => {
           <div className="w-3/4">
             <Player
               fluid={true}
-              src={sampleVideo}
-              className="border border-red-600"
+              src={sublessonData?.subLessionVideo}
               ref={videoRef}
               height={videoHeight}
             />
@@ -108,26 +211,33 @@ const Learning = () => {
             <div className="pt-10 bg-[#f9f9f9] w-full">
               <div>
                 <h3 className="text-xl font-bold text-blue-500">
-                  {sublessons.Lesson?.less_title}
+                  {sublessonData?.lession?.lessionTilte}
                 </h3>
-                <h1 className="text-2xl font-extrabold text-gray-900">
-                  {sublessons?.subless_title}
+                <h1 className="text-2xl font-extrabold text-gray-600">
+                  {sublessonData?.subLessionTitle}
                 </h1>
                 <span className="text-sm text-gray-600">
-                  Độ dài: {sublessons.subless_time || "47 phút"} - Số lượt học{" "}
-                  {sublessons.subless_video_count || "5.831"}
+                  Độ dài: {sublessonData?.subLessionTime || "47 phút"} - Số lượt
+                  học {sublessonData?.subLessionView || "5.831"}
                 </span>
               </div>
-              <div className="flex py-5 bg-white border justify-around">
-                <div className="flex items-center cursor-pointer">
-                  <HiDocumentText size={20} />
-                  <span> Bài tập tự luyện</span>
+              {sublessonData?.subLessionFileExcercise && (
+                <div className="flex py-5 bg-white border justify-around">
+                  <div className="flex items-center cursor-pointer">
+                    <HiDocumentText size={20} />
+                    <span> Bài tập tự luyện</span>
+                  </div>
+                  <div>
+                    <a
+                      href={sublessonData?.subLessionFileExcercise}
+                      className="flex items-center cursor-pointer"
+                    >
+                      <HiOutlineDocumentText size={20} />
+                      <span> Bài tập tự luyện (bản PDF)</span>
+                    </a>
+                  </div>
                 </div>
-                <div className="flex items-center cursor-pointer">
-                  <HiOutlineDocumentText size={20} />
-                  <span> Bài tập tự luyện (bản PDF)</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -138,104 +248,16 @@ const Learning = () => {
                 Đề cương khóa học
               </span>
             </div>
-            <div className="py-1 h-full overflow-y-auto space-y-1">
-              {courses.Lessons?.map((lesson) => (
-                <div key={lesson.less_id}>
-                  <div className="bg-[#e6e6e6] rounded-l-sm">
-                    <div
-                      className="flex justify-between px-3 p-3 items-center cursor-pointer transition duration-300 ease-in-out"
-                      onClick={() => handleOpenLesson(lesson.less_id)}
-                    >
-                      <h1 className="font-bold">{lesson.less_title}</h1>
-                      <span>
-                        {lessonOpen[lesson.less_id] ? (
-                          <FaChevronDown />
-                        ) : (
-                          <FaChevronRight />
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                  {lessonOpen[lesson.less_id] && (
-                    <ul className="flex flex-col gap-2 py-3">
-                      {lesson.Sublessons.map((sublesson) => (
-                        <li
-                          key={sublesson.subless_id}
-                          className="px-5 cursor-pointer text-gray-700 transition-all duration-100 hover:text-black"
-                        >
-                          <Link
-                            to={`/learnings/sublesson/${sublesson.subless_id}`}
-                          >
-                            <h1 className="font-bold">
-                              {sublesson.subless_title}
-                            </h1>
-                          </Link>
-                          <div className="flex gap-x-3">
-                            <div className="flex items-center gap-1 ">
-                              <RiVideoFill
-                                color="blue"
-                                className="opacity-60"
-                              />
-                              <span>{sublesson.subless_time}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <RiFileDownloadFill
-                                color="blue"
-                                className="opacity-60"
-                              />
-                              <span>{sublesson.subless_video_count}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <RiEyeFill color="blue" className="opacity-60" />
-                              <span>{sublesson.subless_video_count}</span>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                      {lesson.Exams.map((exam) => (
-                        <li
-                          key={exam.exam_id}
-                          className="px-5 cursor-pointer text-gray-500 transition-all duration-100 hover:text-black"
-                        >
-                          <Link
-                            to={`/learnings/sublesson/exam/quiz/${exam.exam_id}`}
-                          >
-                            <h1 className="font-bold text-yellow-500">
-                              {exam.ex_title}
-                            </h1>
-                          </Link>
-                          <div className="flex gap-x-3">
-                            <div className="flex items-center gap-1">
-                              <AiFillCheckSquare
-                                color="blue"
-                                className="opacity-60"
-                              />
-                              <span>{exam.ex_dutation}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <BsPencilSquare
-                                color="blue"
-                                className="opacity-60"
-                              />
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
+            {memoizedContent}
           </div>
         </div>
 
         <div className="border">
           <div className="border-b-2 flex">
-            {/** Navigation items */}
             <div
-              onClick={() => handleOpen("message")}
-              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
-                open === "message" ? "bg-blue-500 text-white " : ""
+              onClick={() => handleOpenTab("message")}
+              className={`flex items-center p-3 font-semibold gap-2 text-blue-600 cursor-pointer ${
+                openTab === "message" ? "bg-blue-500 text-white " : ""
               }`}
             >
               <FaFacebookMessenger />
@@ -243,9 +265,9 @@ const Learning = () => {
             </div>
 
             <div
-              onClick={() => handleOpen("note")}
-              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
-                open === "note" ? "bg-blue-500 text-white " : ""
+              onClick={() => handleOpenTab("note")}
+              className={`flex items-center p-3 text-blue-600 font-semibold gap-2 cursor-pointer ${
+                openTab === "note" ? "bg-blue-500 text-white " : ""
               }`}
             >
               <FaFacebookMessenger />
@@ -253,9 +275,9 @@ const Learning = () => {
             </div>
 
             <div
-              onClick={() => handleOpen("notification")}
-              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
-                open === "notification" ? "bg-blue-500 text-white " : ""
+              onClick={() => handleOpenTab("notification")}
+              className={`flex items-center p-3 font-semibold gap-2 text-blue-600 cursor-pointer ${
+                openTab === "notification" ? "bg-blue-500 text-white " : ""
               }`}
             >
               <FaFacebookMessenger />
@@ -263,16 +285,16 @@ const Learning = () => {
             </div>
 
             <div
-              onClick={() => handleOpen("support")}
-              className={`flex items-center p-3 font-semibold gap-2 cursor-pointer ${
-                open === "support" ? "bg-blue-500 text-white " : ""
+              onClick={() => handleOpenTab("support")}
+              className={`flex items-center p-3 font-semibold gap-2 text-blue-600 cursor-pointer ${
+                openTab === "support" ? "bg-blue-500 text-white " : ""
               }`}
             >
               <FaFacebookMessenger />
               <span>Hỗ trợ</span>
             </div>
           </div>
-          {open === "message" && <Message />}
+          {openTab === "message" && <Message sublessonData={sublessonData} />}
         </div>
       </div>
     </SubjectDetail>

@@ -1,39 +1,74 @@
 import React, { useEffect, useRef, useState } from "react";
 import { QuizInfo, QuizQuestions, SubjectDetail } from "../../components";
-import { IoIosArrowBack } from "react-icons/io";
-import clock from "../../assets/images/clock.png";
 import { AiOutlinePrinter } from "react-icons/ai";
 import useScroll from "../../../hook/useScroll";
 import { useParams } from "react-router-dom";
-import { publicRequest } from "../../RequestMethod/Request";
+import { TokenRequest, publicRequest } from "../../RequestMethod/Request";
+import ReactToPrint from "react-to-print";
 
 const SCROLL_THRESHOLD = 82;
 const SCROLL_OFFSET = 150;
 
+const formatTime = (seconds) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes} phút ${remainingSeconds} giây`;
+};
+
 const Quiz = () => {
+  const { quizId } = useParams();
   const scrollY = useScroll();
-  const { exam } = useParams();
   const questionRefs = useRef([]);
   const [quiz, setQuiz] = useState(null);
-  const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [answersSubmitted, setAnswersSubmitted] = useState(false);
+  const [totalMarks, setTotalMarks] = useState(0);
+  const [showCorrectAnswers, setShowCorrectAnswers] = useState(false);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState([]);
+  const componentRef = useRef(null);
+  const [isQuizPaused, setIsQuizPaused] = useState(false);
+
   useEffect(() => {
-    const fetchExam = async () => {
+    const fetchQuiz = async () => {
       try {
-        if (exam) {
-          const response = await publicRequest.get(`/exams/${exam}`);
+        if (quizId) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          const response = await publicRequest.get(`/quizs/${quizId}`);
           setQuiz(response.data);
+          setRemainingTime(response.data.quizDuration * 60 || 0);
         }
       } catch (error) {
-        console.error("Error fetching exam:", error);
+        console.error("Error fetching quiz:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchExam();
-  }, [exam]);
+    fetchQuiz();
+  }, [quizId]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!answersSubmitted) {
+        setRemainingTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [answersSubmitted]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!isQuizPaused) {
+        setRemainingTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [isQuizPaused]);
 
   const scrollToQuestion = (questionNumber) => {
     const questionRef = questionRefs.current[questionNumber - 1];
@@ -45,115 +80,162 @@ const Quiz = () => {
     });
   };
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-  const onAnswerChange = async (questionIndex, optionIndex) => {
-    const questionId = quiz?.exam.Quiz.Questions[questionIndex].question_id;
+  const handleAnswerChange = (questionIndex, optionIndex) => {
+    const questionId = quiz?.questions[questionIndex]?.id;
     const optionId =
-      quiz?.exam.Quiz.Questions[questionIndex].QuizOptions[optionIndex]
-        .quizoption_id;
-    const updatedAnswers = [...selectedAnswers];
-    console.log(updatedAnswers);
-    updatedAnswers[questionIndex] = {
-      questionId,
-      optionId,
-    };
-    setSelectedAnswers(updatedAnswers);
+      quiz?.questions[questionIndex]?.questionOptions[optionIndex]?.id;
+
+    setSelectedAnswers((prevAnswers) => {
+      const updatedAnswers = [...prevAnswers];
+      updatedAnswers[questionIndex] = { questionId, optionId };
+      console.log("Updated Answers:", updatedAnswers);
+      return updatedAnswers;
+    });
   };
+
   const submitAnswers = async () => {
     try {
-      // Ensure that the quiz and question data exist
-      if (!quiz || !quiz.exam || !quiz.exam.Quiz) {
+      if (!quiz || !quiz.questions || quiz.questions.length === 0) {
         console.error("Quiz data is missing or invalid.");
         return;
       }
 
-      // Prepare the data for submission
       const answersToSubmit = selectedAnswers.map((selectedAnswer, index) => {
-        const questionId = quiz?.exam.Quiz.Questions[index]?.question_id;
+        const question = quiz.questions[index];
         const optionId = selectedAnswer?.optionId;
 
-        if (!questionId || !optionId) {
+        if (!question || !optionId) {
           console.error("Question or option data is missing or invalid.");
           return null;
         }
 
+        const selectedOption = question.questionOptions.find(
+          (option) => option.id === optionId
+        );
+
         return {
-          quiz_user_question: questionId,
-          quiz_user_option: optionId,
-          quiz_user: "4e74e025-4492-4a1d-b490-da7e9f1796d7",
+          userResponse: optionId.toString(),
+          questionOptionId: optionId,
+          isCorrect: selectedOption?.isCorrect,
+          questionPoint: selectedOption?.isCorrect ? question.questionPoint : 0,
         };
       });
 
-      // Remove any null values (invalid questions or options)
       const validAnswers = answersToSubmit.filter((answer) => answer !== null);
-
-      // Submit all valid answers
       const responses = await Promise.all(
-        validAnswers.map((answer) => publicRequest.post("/quizanswers", answer))
+        validAnswers.map((answer) =>
+          TokenRequest.post("/useranswers/create", answer)
+        )
       );
-      //     const totalScore = responses
-      //       .map((response) => response.data)
-      //       .reduce((acc, score) => parseInt(acc) + parseInt(score), 0);
-      // console.log(totalScore);
-      //     setScore(totalScore);
+      const totalMarks = validAnswers.reduce(
+        (total, answer) => total + answer.questionPoint,
+        0
+      );
+
+      const numCorrectAnswers = validAnswers.reduce(
+        (total, answer) => total + (answer.isCorrect ? 1 : 0),
+        0
+      );
+      setCorrectAnswers(numCorrectAnswers);
+      setTotalMarks(totalMarks);
+      setAnswersSubmitted(true);
+
+      const isAnswerCorrectArray = validAnswers.map(
+        (answer) => answer.isCorrect
+      );
+      setIsAnswerCorrect(isAnswerCorrectArray);
+      setShowCorrectAnswers(true);
     } catch (error) {
-      console.error("Error submitting quiz answers:", error);
+      console.error("Error submitting user answers:", error);
     }
   };
+  if (loading) {
+    return (
+      <div className="flex h-screen justify-center items-center">
+        <div className="animate-spin h-10 w-10 border-t-2 border-blue-500 border-solid rounded-full"></div>
+      </div>
+    );
+  }
+  const handleQuizPaused = async () => {
+    try {
+      setIsQuizPaused(true);
+      console.log("Hello");
 
+      // Submit answers when pausing
+      await submitAnswers();
+    } catch (error) {
+      console.error("Error pausing quiz:", error);
+    }
+  };
   return (
     <SubjectDetail
       scrollY={scrollY <= SCROLL_THRESHOLD}
       quiz={true}
-      examTime={quiz?.exam.ex_dutation}
+      examTime={formatTime(remainingTime)}
       submitAnswers={submitAnswers}
+      setIsQuizPaused={handleQuizPaused}
     >
-      <div className="mt-44">
+      <div className="pt-40">
         <div className="flex justify-around gap-1 ">
           <div className="w-[15%] px-4 rounded-md relative">
-            <div className="flex items-center bg-[#2a70b8] rounded-lg p-2 text-white cursor-pointer fixed">
-              <AiOutlinePrinter className="mr-2" size={25} />
-              <span className="font-bold">Tải đề + đáp án</span>
-            </div>
+            <ReactToPrint
+              content={() => {
+                const content = componentRef.current;
+                return content;
+              }}
+              trigger={() => (
+                <div className="flex items-center bg-[#2a70b8] rounded-lg p-2 text-white cursor-pointer fixed">
+                  <AiOutlinePrinter className="mr-2" size={25} />
+                  <span className="font-bold">Tải đề + đáp án</span>
+                </div>
+              )}
+            />
           </div>
-
           <div className="flex-1 bg-white border px-6 py-4 rounded-md">
-            <div className="text-center">
-              <h1 className="text-blue-700 text-2xl font-bold mb-4">
-                {quiz?.exam.ex_title || "No Title"}
-              </h1>
-              <h2 className="text-gray-500 text-lg mb-2">
-                {quiz?.exam.ex_description || "No Description"}
-              </h2>
-              <div className="border-b-2 border-white mb-4"></div>
-              <p className="text-white mb-4">Ngữ văn</p>
-            </div>
+            {answersSubmitted && (
+              <QuizInfo
+                correctAnswers={correctAnswers}
+                totalMarks={totalMarks}
+                totalQuestions={quiz?.questions.length || 0}
+                remainingTime={remainingTime}
+              />
+            )}
             <QuizQuestions
-              questionsData={quiz?.exam.Quiz}
+              ref={componentRef}
+              questionsData={quiz}
               questionRefs={questionRefs}
-              onAnswerChange={onAnswerChange}
+              onAnswerChange={handleAnswerChange}
+              selectedAnswers={selectedAnswers}
+              correctAnswers={correctAnswers}
+              showCorrectAnswers={showCorrectAnswers}
+              isAnswerCorrect={isAnswerCorrect}
             />
           </div>
 
-          <div className="w-1/5 relative px-4">
-            <div className="fixed border bg-white shadow-md rounded-md px-11">
+          <div className="w-1/5  relative px-4">
+            <div className="fixed border bg-white shadow-md rounded-md px-11 min-h-[220px]">
               <h1 className="font-bold text-blue-500 text-lg mb-4 text-center py-2 underline">
-                Tổng số câu hỏi: {quiz?.count}
+                Tổng số câu hỏi:
+                {quiz?.questions.reduce((total, question) => total + 1, 0)}
               </h1>
               <div className="grid grid-cols-5 gap-2 cursor-pointer">
-                {quiz?.exam?.Quiz.Questions.map((_, index) => (
+                {quiz?.questions.map((_, index) => (
                   <div
                     key={index + 1}
-                    className="text-center font-bold text-gray-900 border p-3 rounded-lg"
+                    className={`flex items-center justify-center font-bold text-gray-900 border p-3 rounded-lg ${
+                      showCorrectAnswers && isAnswerCorrect[index]
+                        ? "bg-green-300"
+                        : isAnswerCorrect[index] === false
+                        ? "bg-red-300"
+                        : ""
+                    }`}
                     onClick={() => scrollToQuestion(index + 1)}
                   >
                     {index + 1}
                   </div>
                 ))}
               </div>
-              <div className="mt-2 bg-[#e1e1e1] p-2 rounded-b-md">
+              <div className="mt-2 bg-[#e1e1e1] p-2 rounded-b-md ">
                 <div className="flex items-center mb-2">
                   <div className="w-4 h-4 bg-blue-800 rounded-full mr-2"></div>
                   <span className="text-green-500">Đúng</span>

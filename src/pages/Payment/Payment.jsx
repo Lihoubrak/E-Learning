@@ -1,19 +1,124 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PaymentReport, PaymentTable, SubjectDetail } from "../../components";
 import { TiTick } from "react-icons/ti";
-import { FaBookMedical, FaCheck, FaCreditCard } from "react-icons/fa";
+import { FaBookMedical, FaCreditCard } from "react-icons/fa";
 import { LuBookMarked } from "react-icons/lu";
 import { TbFilePercent } from "react-icons/tb";
 import { GiArchiveRegister } from "react-icons/gi";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
-import { Backdrop, Table, TableBody, TableHead } from "@mui/material";
+import { Backdrop } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import { TokenRequest, publicRequest } from "../../RequestMethod/Request";
+import { CiCircleRemove } from "react-icons/ci";
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+
 const Payment = () => {
   const [open, setOpen] = useState(false);
   const [clickHeaderIndex, setClickHeaderIndex] = useState(null);
-  const handleOpen = () => setOpen(true);
+  const [category, setCategory] = useState([]);
+  const { categorySecondId, courseId } = useParams();
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [user, setUser] = useState(null);
+  const [isEnrollment, setEnrollment] = useState(false);
+  const stripe = useStripe();
+  const handleCategoryClick = async (categorySecondId, categoryFirsts) => {
+    setClickHeaderIndex(categorySecondId);
+  };
+
+  const handleOpen = () => {
+    if (selectedCourses.length > 0) {
+      setOpen(true);
+    }
+  };
+
   const handleClose = () => setOpen(false);
 
+  const handleSelect = (course) => {
+    const isCourseSelected = selectedCourses.some(
+      (selectedCourse) => selectedCourse.id === course.id
+    );
+
+    if (!isCourseSelected) {
+      setSelectedCourses((prevCourses) => [...prevCourses, course]);
+    }
+  };
+
+  const handleRemove = (course) => {
+    const updatedCourses = selectedCourses.filter(
+      (cos) => cos.id !== course.id
+    );
+    setSelectedCourses(updatedCourses);
+  };
+
+  const handlePayment = async () => {
+    const response = await TokenRequest.post("/payments/create", {
+      courses: selectedCourses,
+    });
+    if (response.data.id) {
+      const result = await stripe.redirectToCheckout({
+        sessionId: response.data.id,
+      });
+      if (result.error) {
+        // Handle payment errors
+        console.error(result.error);
+      }
+    }
+  };
+
+  const totalMoney = selectedCourses.reduce(
+    (accumulator, currentValue) =>
+      accumulator + parseFloat(currentValue.coursePrice),
+    0
+  );
+
+  useEffect(() => {
+    const fetchCategory = async () => {
+      try {
+        const response = await publicRequest.get(`/categorys`);
+        setCategory(response.data);
+
+        const categoryIndex = response.data.findIndex((cat) => {
+          const categoryFirstIndex = cat.categoryFirsts.findIndex(
+            (categoryFirst) => {
+              return categoryFirst.categorySeconds.some(
+                (categorySecond) =>
+                  categorySecond.id === parseInt(categorySecondId)
+              );
+            }
+          );
+
+          return categoryFirstIndex !== -1;
+        });
+
+        setClickHeaderIndex(categoryIndex);
+      } catch (error) {
+        console.error("Error fetching teacher details:", error);
+      }
+    };
+
+    fetchCategory();
+    const fetchUserData = async () => {
+      try {
+        const response = await TokenRequest.get(`/users/infouser`);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchUserData();
+    window.scrollTo(0, 0);
+  }, [categorySecondId]);
+  // const CheckEnrollment = async (courseId) => {
+  //   try {
+  //     const res = await TokenRequest.get(
+  //       `/enrollments/check-enrollment/${courseId}`
+  //     );
+  //     setEnrollment(res.data);
+  //   } catch (error) {
+  //     console.error("Error checking enrollment:", error);
+  //   }
+  // };
   const sample = [
     {
       hoa_don: "HD001",
@@ -66,25 +171,28 @@ const Payment = () => {
   const rows = sample.map((item, index) =>
     createData(index + 1, ...Object.values(item))
   );
+
   return (
     <SubjectDetail showHeader={true}>
-      <div className="mt-24">
+      <div className="pt-24">
         <div className="mx-24">
           <ul className="flex border-b-[1px] text-blue-600 mb-24">
-            {["Đại học", "Các khóa THPT", "THCS", "Tiểu học"].map(
-              (item, index) => (
+            {Array.isArray(category) &&
+              category.map((item, index) => (
                 <li
                   key={index}
                   className={`cursor-pointer px-3 py-2 ${
                     index === clickHeaderIndex ? "bg-blue-600 text-white" : ""
                   }`}
-                  onClick={() => setClickHeaderIndex(index)}
+                  onClick={() =>
+                    handleCategoryClick(index, item.categoryFirsts)
+                  }
                 >
-                  {item}
+                  {item.categoryName}
                 </li>
-              )
-            )}
+              ))}
           </ul>
+
           {/* {context} */}
           <div>
             <div className=" flex flex-col items-center">
@@ -114,82 +222,31 @@ const Payment = () => {
               </div>
             </div>
             <div className="flex justify-between mt-10 gap-2">
-              <div className="flex-1">
-                <h1 className="text-xl font-sans mb-4 text-center text-blue-600">
-                  TRUNG HỌC CƠ SỞ
-                </h1>
-                <ul className="flex flex-wrap">
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 6
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 7
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 8
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                </ul>
-              </div>
-              <div className=" flex-1">
-                <h1 className="text-xl font-sans mb-4 text-center text-blue-600">
-                  TRUNG HỌC CƠ SỞ (2021-2022)
-                </h1>
-                <ul className="flex flex-wrap">
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 6
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 7
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 8
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                  <li className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer">
-                    Lớp 9
-                  </li>
-                </ul>
-              </div>
+              {clickHeaderIndex !== null &&
+                Array.isArray(category[clickHeaderIndex].categoryFirsts) &&
+                category[clickHeaderIndex].categoryFirsts.map(
+                  (categoryFirst) => (
+                    <div className="flex-1" key={categoryFirst.id}>
+                      <h1 className="text-xl font-sans mb-4 text-center text-blue-600">
+                        {categoryFirst.categoryFirstName}
+                      </h1>
+                      <ul className="flex flex-wrap justify-center">
+                        {Array.isArray(categoryFirst.categorySeconds) &&
+                          categoryFirst.categorySeconds.map(
+                            (categorySecond) => (
+                              <li
+                                key={categorySecond.id}
+                                className="border px-4 py-2 mb-4 hover:bg-blue-600 hover:text-white cursor-pointer"
+                              >
+                                {categorySecond.categorySecondName}
+                              </li>
+                            )
+                          )}
+                      </ul>
+                    </div>
+                  )
+                )}
             </div>
-
             <div className="flex gap-3 mt-10 justify-center ">
               <div className="max-w-[200px]">
                 <button className="p-4 flex items-center bg-[#e8e8e8]  rounded-lg shadow-lg w-full">
@@ -211,24 +268,55 @@ const Payment = () => {
                   <LuBookMarked size={20} />
                   <span className="ml-2">CHỌN KHÓA HỌC</span>
                 </button>
-                <ul className="max-w-sm  mt-2 break-words">
-                  <li className="flex justify-between gap-3 border bg-gray-100 p-2 mb-2 rounded-lg">
-                    <span className="text-sm font-sans text-gray-800">
-                      NGỮ VĂN 12 - THẦY ĐẶNG NGỌC KHƯƠNG, CÔ TRẦN XUÂN - 3 THÁNG
-                    </span>
-                    <span className="text-lg text-gray-700 font-bold">
-                      400,000
-                    </span>
-                  </li>
-                  <li className="flex justify-between gap-3 border bg-gray-100 p-2 mb-2 rounded-lg">
-                    <span className="text-sm font-sans text-gray-800">
-                      NGỮ VĂN 12 - THẦY ĐẶNG NGỌC KHƯƠNG, CÔ TRẦN XUÂN - 3 THÁNG
-                    </span>
-                    <span className="text-lg text-gray-700 font-bold">
-                      400,000
-                    </span>
-                  </li>
-                </ul>
+                {clickHeaderIndex !== null && (
+                  <div>
+                    <ul className="max-w-sm mt-2 break-words">
+                      {Array.isArray(
+                        category[clickHeaderIndex].categoryFirsts
+                      ) &&
+                        category[clickHeaderIndex].categoryFirsts.map(
+                          (categoryFirst) =>
+                            Array.isArray(categoryFirst.categorySeconds) &&
+                            categoryFirst.categorySeconds.map(
+                              (categorySecond) =>
+                                categorySecond.courses.map((course) =>
+                                  course.coursePrice ? (
+                                    <li
+                                      key={course.id}
+                                      className="group hover:bg-blue-400 hover:text-white flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow-sm mb-4 relative"
+                                    >
+                                      <div className="">
+                                        <span className="text-sm block font-sans">
+                                          {course.courseName}
+                                        </span>
+                                        <span className="text-sm font-sans text-gray-400">
+                                          {course.user.username}
+                                        </span>
+                                      </div>
+                                      <span className="text-lg font-bold">
+                                        {course.coursePrice} đ
+                                      </span>
+
+                                      {isEnrollment.enrolled ? (
+                                        <span className="text-green-500">
+                                          Enrolled
+                                        </span>
+                                      ) : (
+                                        <button
+                                          onClick={() => handleSelect(course)}
+                                          className="hidden group-hover:inline-block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-4 py-1 rounded-md"
+                                        >
+                                          Select
+                                        </button>
+                                      )}
+                                    </li>
+                                  ) : null
+                                )
+                            )
+                        )}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="max-w-sm flex-1">
@@ -264,20 +352,32 @@ const Payment = () => {
                 </button>
                 <ul className="max-w-sm  mt-2 break-words">
                   <div>
-                    <li className="flex justify-between gap-3 border bg-[#0072bc] p-2 mb-2 rounded-lg">
-                      <div>
-                        <span className="text-sm block font-sans text-white">
-                          NGỮ VĂN 12 - THẦY ĐẶNG NGỌC KHƯƠNG, CÔ TRẦN XUÂN - 3
-                          THÁNG
-                        </span>
-                        <span className="text-sm font-sans text-gray-400">
-                          Le Ba Tran Phuong
-                        </span>
-                      </div>
-                      <span className="text-lg text-white font-bold">
-                        400,000
-                      </span>
-                    </li>
+                    {selectedCourses &&
+                      selectedCourses.map((course) => (
+                        <li
+                          key={course.id}
+                          className="relative flex justify-between gap-3 pt-4 border bg-[#0072bc] p-2 mb-2 rounded-lg"
+                        >
+                          <div>
+                            <span className="text-sm block font-sans text-white">
+                              {course.courseName}
+                            </span>
+                            <span className="text-sm font-sans text-gray-400">
+                              {course.user.username}
+                            </span>
+                          </div>
+                          <span className=" text-lg text-white font-bold">
+                            {course.coursePrice} đ
+                          </span>
+                          <CiCircleRemove
+                            className="absolute right-1 top-0 cursor-pointer"
+                            color="white"
+                            size={20}
+                            onClick={() => handleRemove(course)}
+                          />
+                        </li>
+                      ))}
+
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <div className="text-gray-700">
@@ -286,7 +386,9 @@ const Payment = () => {
                         </div>
 
                         <div className="text-gray-700">
-                          <span className="font-bold block">2.199.000 đ</span>
+                          <span className="font-bold block">
+                            {totalMoney} đ
+                          </span>
                           <span>0</span>
                         </div>
                       </div>
@@ -297,9 +399,8 @@ const Payment = () => {
                         <div className="text-gray-700 font-bold">
                           Học phí phải đóng:
                         </div>
-                        <div className="text-red-600">2.199.000 đ</div>
+                        <div className="text-red-600"> {totalMoney} đ</div>
                       </div>
-
                       <div
                         onClick={handleOpen}
                         className="text-lg font-bold text-center bg-[#ff9e00] py-2 text-white cursor-pointer"
@@ -325,35 +426,28 @@ const Payment = () => {
                             <div className="px-3 mt-2 space-y-2 ">
                               <p className="text-sm font-sans">
                                 × XÁC NHẬN ĐĂNG KÝ HỌC Bạn sẽ đăng ký khóa học
-                                cho tài khoản: dcan38802@gmail.com
+                                cho tài khoản: {user?.email}
                               </p>
-                              <div className="flex justify-between gap-3 border bg-[#0072bc] p-2 mb-2 rounded-lg">
-                                <div>
-                                  <span className="text-sm block font-sans text-white">
-                                    NGỮ VĂN 12 - THẦY ĐẶNG NGỌC KHƯƠNG, CÔ TRẦN
-                                    XUÂN - 3 THÁNG
-                                  </span>
-                                  <span className="text-sm font-sans text-gray-400">
-                                    Le Ba Tran Phuong
-                                  </span>
-                                </div>
-                                <span className="text-lg text-white font-bold">
-                                  400,000
-                                </span>
-                              </div>
-                              <div className="flex justify-between gap-3 border bg-[#0072bc] p-2 mb-2 rounded-lg">
-                                <div>
-                                  <span className="text-sm block font-sans text-white">
-                                    NGỮ VĂN 12 - THẦY ĐẶNG NGỌC KHƯƠNG, CÔ TRẦN
-                                    XUÂN - 3 THÁNG
-                                  </span>
-                                  <span className="text-sm font-sans text-gray-400">
-                                    Le Ba Tran Phuong
-                                  </span>
-                                </div>
-                                <span className="text-lg text-white font-bold">
-                                  400,000
-                                </span>
+                              <div>
+                                {selectedCourses &&
+                                  selectedCourses.map((course) => (
+                                    <div
+                                      key={course.id}
+                                      className="flex justify-between gap-3 border bg-[#0072bc] p-2 mb-2 rounded-lg"
+                                    >
+                                      <div className="">
+                                        <span className="text-sm block font-sans text-white">
+                                          {course.courseName}
+                                        </span>
+                                        <span className="text-sm font-sans text-gray-400">
+                                          {course.user.username}
+                                        </span>
+                                      </div>
+                                      <span className="text-lg text-white font-bold">
+                                        {course.coursePrice} đ
+                                      </span>
+                                    </div>
+                                  ))}
                               </div>
                               <div className="w-2/3 ml-auto">
                                 <div className="flex justify-between items-center mb-2">
@@ -365,7 +459,7 @@ const Payment = () => {
                                   </div>
                                   <div className="text-gray-700">
                                     <span className="font-bold block">
-                                      2.199.000 đ
+                                      {totalMoney} đ
                                     </span>
                                     <span>0</span>
                                   </div>
@@ -376,7 +470,7 @@ const Payment = () => {
                                     Học phí phải đóng:
                                   </div>
                                   <div className="text-red-600">
-                                    2.199.000 đ
+                                    {totalMoney} đ
                                   </div>
                                 </div>
                                 <div className="flex items-center justify-between mb-3">
@@ -387,7 +481,10 @@ const Payment = () => {
                                     Hủy
                                   </button>
                                   <div className="ml-4">
-                                    <button className="bg-blue-600 text-sm text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline">
+                                    <button
+                                      onClick={handlePayment}
+                                      className="bg-blue-600 text-sm text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                                    >
                                       Xác nhận thanh toán khóa học
                                     </button>
                                   </div>

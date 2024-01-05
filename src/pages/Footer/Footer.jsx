@@ -44,7 +44,7 @@ const Footer = () => {
   ];
 
   return (
-    <div className="flex justify-around bg-white px-20 p-16 space-x-5 mt-10  shadow-2xl border">
+    <div className="flex justify-around bg-white px-20 p-16 space-x-5 mt-10 border border-b-0">
       {sections.map((section, index) => (
         <ul key={index}>
           <li className="font-bold pb-3">{section.title}</li>

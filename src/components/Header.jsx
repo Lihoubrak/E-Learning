@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { BiMenu } from "react-icons/bi";
 import { IoIosArrowBack, IoIosCall } from "react-icons/io";
@@ -11,6 +11,10 @@ import { FaBookMedical } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 import Tippy from "@tippyjs/react/headless";
 import TippyProfile from "./Tippy/TippyProfile";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+import { TokenRequest } from "../RequestMethod/Request";
+import UpdateUserContext from "../context/UpdateUserContext";
 const Header = ({
   backgroundColor,
   phoneNumber,
@@ -24,8 +28,22 @@ const Header = ({
   examTime,
   submitAnswers,
   colorKhoaIcon,
+  setIsQuizPaused,
 }) => {
-  const user = false;
+  const [user, setUser] = useState(null);
+  const { isChange } = useContext(UpdateUserContext);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await TokenRequest.get(`/users/infouser`);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [isChange]);
   return (
     <header>
       {(scrollY || showHeader) && (
@@ -55,7 +73,10 @@ const Header = ({
                 </div>
               </TippyHeadless>
             ) : (
-              <div className="w-12 h-12 rounded-full overflow-hidden">
+              <div
+                onClick={() => (window.location.href = "/")}
+                className="w-12 h-12 rounded-full overflow-hidden cursor-pointer"
+              >
                 <img src={logo} alt="" className="w-full h-full object-cover" />
               </div>
             )}
@@ -75,7 +96,10 @@ const Header = ({
             }`}
           >
             {SubjectDetail ? (
-              <div>
+              <div
+                onClick={() => (window.location.href = "/")}
+                className="cursor-pointer"
+              >
                 <img src={logo} alt="Subject Detail" />
               </div>
             ) : (
@@ -87,7 +111,7 @@ const Header = ({
           </div>
 
           <div className="flex gap-5 items-center ">
-            {user ? (
+            {!!user ? (
               <>
                 <Link to={"/courseMe"}>
                   <div className="flex items-center cursor-pointer hover:text-blue-500">
@@ -111,11 +135,14 @@ const Header = ({
                   color="#FFFFFF"
                   className="cursor-pointer"
                 />
-                <Tippy interactive render={(attrs) => <TippyProfile />}>
+                <Tippy
+                  interactive
+                  render={(attrs) => <TippyProfile user={user} />}
+                >
                   <div className="relative">
                     <div className="w-12 h-12 rounded-full overflow-hidden cursor-pointer">
                       <img
-                        src="https://hocmai.vn/pix/u/f2.png"
+                        src={user.avatar}
                         alt=""
                         className="w-full h-full object-cover"
                       />
@@ -147,7 +174,7 @@ const Header = ({
 
       {quiz ? (
         <div
-          className={`bg-[#fffcfc] flex  border px-52 py-3 z-10 items-center justify-between fixed left-0 right-0  top-${
+          className={`bg-[#fffcfc] flex  border px-52 py-2 z-10 items-center justify-between fixed left-0 right-0  top-${
             scrollY && quiz ? 16 : 0
           }`}
           style={{
@@ -158,7 +185,7 @@ const Header = ({
         >
           <div className="flex items-center cursor-pointer flex-1">
             <IoIosArrowBack className="text-blue-700 text-2xl" />
-            <h1 className="text-blue-700 text-xl font-semibold ml-3">
+            <h1 className="text-blue-700   font-semibold ml-3">
               QUAY LẠI KHOA HỌC
             </h1>
           </div>
@@ -177,7 +204,10 @@ const Header = ({
               >
                 NỘP BÀI
               </div>
-              <div className="px-5 py-3 bg-[#888888] text-white rounded-md cursor-pointer ml-2 hover:bg-gray-600 transition duration-300">
+              <div
+                onClick={setIsQuizPaused}
+                className="px-5 py-3 bg-[#888888] text-white rounded-md cursor-pointer ml-2 hover:bg-gray-600 transition duration-300"
+              >
                 TẠM DỪNG
               </div>
             </div>

@@ -8,6 +8,7 @@ const CourseListCategory = ({
   teacher,
   detailsLink,
 }) => {
+  const formattedDate = new Date(duration).toLocaleDateString();
   return (
     <div className="border mb-4 ">
       <div className="mb-2">
@@ -16,7 +17,7 @@ const CourseListCategory = ({
       <ul className="ml-2 text-xs space-y-1 opacity-70 mb-2">
         <li className="text-black font-bold">{title}</li>
         <li>Học phí: {fee}</li>
-        <li>Thời gian học: {duration}</li>
+        <li>Thời gian học: {formattedDate}</li>
         <li>Giáo viên: {teacher}</li>
       </ul>
       <a

@@ -19,7 +19,7 @@ import image7 from "../../assets/images/image7.png";
 import image8 from "../../assets/images/image8.png";
 import image9 from "../../assets/images/image9.png";
 import image10 from "../../assets/images/image10.png";
-import axios from "axios";
+import { publicRequest } from "../../RequestMethod/Request";
 
 const Home = () => {
   const imageSources = [
@@ -35,32 +35,34 @@ const Home = () => {
     image10,
   ];
   const [courses, setCourses] = useState([]);
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await axios.get("http://localhost:3000/api/courses");
-  //       setCourses(response.data);
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await publicRequest.get("/courses");
+        setCourses(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-  //   fetchData();
-  // }, []);
+    fetchData();
+  }, []);
 
   const highSchoolCourses = courses.filter(
     (course) =>
-      course.SubCategory.Category.category_name.trim() === "High School"
+      course.categorySecond.categoryFirst.category.categoryName.trim() ===
+      "Đại học - Cao đẳng"
   );
   const middleSchoolCourses = courses.filter(
     (course) =>
-      course.SubCategory.Category.category_name.trim() === "University School"
+      course.categorySecond.categoryFirst.category.categoryName.trim() ===
+      "Lớp 10 - Lớp 11 - Lớp 12"
   );
   const elementarySchoolCourses = courses.filter(
     (course) =>
-      course.SubCategory.Category.category_name.trim() === "Elementary School"
+      course.categorySecond.categoryFirst.category.categoryName.trim() ===
+      "Tiền tiểu học"
   );
-
   return (
     <>
       <Header
@@ -88,7 +90,7 @@ const Home = () => {
           <h1 className="text-xl font-bold my-3 ">Trung học phổ thông</h1>
         </div>
 
-        <div className="px-20  space-y-5">
+        <div className="px-20   space-y-5">
           <SlideCourse autoplayDelay={2000} courses={highSchoolCourses} />
         </div>
 
