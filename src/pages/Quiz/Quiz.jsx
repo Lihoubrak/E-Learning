@@ -49,26 +49,16 @@ const Quiz = () => {
 
     fetchQuiz();
   }, [quizId]);
-
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (!answersSubmitted) {
+      if (!answersSubmitted && !isQuizPaused) {
         setRemainingTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
       }
     }, 1000);
 
+    // Clear the interval when answers are submitted or quiz is paused
     return () => clearInterval(intervalId);
-  }, [answersSubmitted]);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!isQuizPaused) {
-        setRemainingTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [isQuizPaused]);
+  }, [answersSubmitted, isQuizPaused]);
 
   const scrollToQuestion = (questionNumber) => {
     const questionRef = questionRefs.current[questionNumber - 1];
@@ -151,7 +141,7 @@ const Quiz = () => {
   };
   if (loading) {
     return (
-      <div className="flex h-screen justify-center items-center">
+      <div className="flex justify-center items-center absolute w-full h-full">
         <div className="animate-spin h-10 w-10 border-t-2 border-blue-500 border-solid rounded-full"></div>
       </div>
     );
@@ -159,8 +149,6 @@ const Quiz = () => {
   const handleQuizPaused = async () => {
     try {
       setIsQuizPaused(true);
-      console.log("Hello");
-
       // Submit answers when pausing
       await submitAnswers();
     } catch (error) {
@@ -189,6 +177,22 @@ const Quiz = () => {
                   <span className="font-bold">Tải đề + đáp án</span>
                 </div>
               )}
+              pageStyle={`@page {
+                size: A4;
+                margin: 20mm 10mm;
+              }
+              @media print {
+                body {
+                  font-size: 12px;
+                  color: #333;
+                }
+                h1, h2, h3, h4, h5, h6 {
+                  color: #000; /* Ensure heading colors are black in print */
+                }
+                p {
+                  margin: 0; /* Remove default margins for paragraphs */
+                }
+              }`}
             />
           </div>
           <div className="flex-1 bg-white border px-6 py-4 rounded-md">

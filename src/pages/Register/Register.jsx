@@ -35,7 +35,7 @@ const Register = () => {
         roleId: 2,
       });
       if (response.data.message === "Registration successful.") {
-        window.location.href = "http://localhost:5173/login";
+        window.location.href = "/login";
       }
     } catch (error) {
       console.error("Error during registration:", error);

@@ -97,7 +97,7 @@ const QuizQuestions = forwardRef(
             </div>
           ))}
         </div>
-        <div>{printQuestionsAndAnswers()}</div>
+        <div>{showCorrectAnswers && printQuestionsAndAnswers()}</div>
       </div>
     );
   }

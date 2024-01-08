@@ -1,4 +1,3 @@
-// File: YourComponent.js
 import {
   Table,
   TableBody,
@@ -9,6 +8,8 @@ import {
   Paper,
   Button,
 } from "@mui/material";
+import React from "react";
+
 const PaymentTransaction = ({ headers, data }) => {
   const handleViewDetailsClick = (invoiceNumber) => {
     alert(`View details for invoice ${invoiceNumber}`);
@@ -17,7 +18,7 @@ const PaymentTransaction = ({ headers, data }) => {
   return (
     <TableContainer
       component={Paper}
-      className="w-full max-w-[750px] ml-4 p-8 rounded-md"
+      className="w-full max-w-[900px] ml-4 p-8 rounded-md"
     >
       <Table>
         <TableHead>
@@ -51,23 +52,46 @@ const PaymentTransaction = ({ headers, data }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((row, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {row.map((cell, cellIndex) => (
-                <TableCell
-                  key={cellIndex}
-                  style={{ cursor: "pointer" }}
-                  align="center"
-                  onClick={handleViewDetailsClick}
-                >
-                  {cell}
-                </TableCell>
-              ))}
-            </TableRow>
+          {data.map((payment, paymentIndex) => (
+            <React.Fragment key={paymentIndex}>
+              {payment.enrollment_payments.map(
+                (enrollmentPayment, enrollmentIndex) => (
+                  <TableRow key={enrollmentIndex}>
+                    <TableCell align="center">
+                      {enrollmentPayment.enrollment.id}
+                    </TableCell>
+                    <TableCell align="center">
+                      {enrollmentPayment.enrollment.courseId}
+                    </TableCell>
+                    <TableCell align="center">
+                      {payment.paymentAmount}
+                    </TableCell>
+                    <TableCell align="center">{payment.paymentDate}</TableCell>
+                    <TableCell align="center">
+                      {enrollmentPayment.paymentStatus}
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: 250 }}>
+                      <Button
+                        onClick={() =>
+                          handleViewDetailsClick(
+                            enrollmentPayment.enrollment.id
+                          )
+                        }
+                        variant="contained"
+                        color="primary"
+                      >
+                        Xem chi tiết
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              )}
+            </React.Fragment>
           ))}
         </TableBody>
       </Table>
     </TableContainer>
   );
 };
+
 export default PaymentTransaction;

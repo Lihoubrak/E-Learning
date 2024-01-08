@@ -11,34 +11,33 @@ import { Button, Dialog, IconButton } from "@mui/material";
 import { TokenRequest } from "../../RequestMethod/Request";
 import UpdateUserContext from "../../context/UpdateUserContext";
 
-const data = [
-  [
-    "1801204",
-    "#1801203-06122023",
-    "999.000",
-    "2023-12-06 02:37:44",
-    "Thất bại",
-    "Xem chi tiết",
-  ],
-  [
-    "1801203",
-    "#1801202-06122023",
-    "999.000",
-    "2023-12-06 02:36:51",
-    "Thất bại",
-    "Xem chi tiết",
-  ],
-  [
-    "1801202",
-    "#1801201-06122023",
-    "2.199.000",
-    "2023-12-06 02:15:51",
-    "Thất bại",
-    "Xem chi tiết",
-  ],
-  // Add more rows as needed
-];
-
+// const data = [
+//   [
+//     "1801204",
+//     "#1801203-06122023",
+//     "999.000",
+//     "2023-12-06 02:37:44",
+//     "Thất bại",
+//     "Xem chi tiết",
+//   ],
+//   [
+//     "1801203",
+//     "#1801202-06122023",
+//     "999.000",
+//     "2023-12-06 02:36:51",
+//     "Thất bại",
+//     "Xem chi tiết",
+//   ],
+//   [
+//     "1801202",
+//     "#1801201-06122023",
+//     "2.199.000",
+//     "2023-12-06 02:15:51",
+//     "Thất bại",
+//     "Xem chi tiết",
+//   ],
+//   // Add more rows as needed
+// ];
 const tabs = [
   {
     key: "profile",
@@ -60,7 +59,6 @@ const tabs = [
     label: "Lịch sử thanh toán",
     component: <PaymentSummary mainAmount={0} promoAmount={0} />,
   },
-  // Add more tabs as needed
 ];
 
 const ProfileTabs = ({ activeItem, handleItemClick, user }) => {
@@ -87,7 +85,7 @@ const ProfileTabs = ({ activeItem, handleItemClick, user }) => {
   );
 };
 
-const ProfileContent = ({ activeItem, user }) => {
+const ProfileContent = ({ activeItem, user, data }) => {
   const components = {
     profile: <ProfileDetail user={user} />,
     notifications: <NotificationSettings />,
@@ -105,7 +103,6 @@ const ProfileContent = ({ activeItem, user }) => {
         data={data}
       />
     ),
-    // Add more components as needed
   };
 
   return <div>{components[activeItem]}</div>;
@@ -118,6 +115,7 @@ const Profile = () => {
   const [imageUrl, setImageUrl] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const { setChange, isChange } = useContext(UpdateUserContext);
+  const [data, setData] = useState([]);
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -129,6 +127,17 @@ const Profile = () => {
     };
 
     fetchUserData();
+    const fetchPaymentData = async () => {
+      try {
+        const paymentResponse = await TokenRequest.get("/payments/user");
+        setData(paymentResponse.data);
+        console.log(paymentResponse.data);
+      } catch (error) {
+        console.error("Error fetching payment data:", error);
+      }
+    };
+
+    fetchPaymentData();
   }, [isChange]);
   const handleOpenModal = () => {
     setModalOpen(true);
@@ -270,7 +279,7 @@ const Profile = () => {
           handleItemClick={handleItemClick}
           user={user}
         />
-        <ProfileContent activeItem={activeItem} user={user} />
+        <ProfileContent activeItem={activeItem} user={user} data={data} />
       </div>
     </SubjectDetail>
   );

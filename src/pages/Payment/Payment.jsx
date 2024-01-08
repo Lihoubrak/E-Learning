@@ -34,14 +34,53 @@ const Payment = () => {
 
   const handleClose = () => setOpen(false);
 
-  const handleSelect = (course) => {
+  const handleSelect = async (course) => {
     const isCourseSelected = selectedCourses.some(
       (selectedCourse) => selectedCourse.id === course.id
     );
 
-    if (!isCourseSelected) {
-      setSelectedCourses((prevCourses) => [...prevCourses, course]);
+    try {
+      // Check enrollment status for the selected course
+      const res = await TokenRequest.get(
+        `/enrollments/check-enrollment/${course.id}`
+      );
+
+      if (!isCourseSelected && !res.data.enrolled) {
+        // If the course is not already selected and not enrolled, add it to the selected courses
+        setSelectedCourses((prevCourses) => [...prevCourses, course]);
+      } else if (res.data.enrolled && course.id === res.data.courseId) {
+        window.alert(`Course ${course.id} is already selected and enrolled.`);
+      }
+    } catch (error) {
+      console.error(
+        `Error checking enrollment for course ${course.id}:`,
+        error
+      );
     }
+
+    const fetchEnrollmentStatus = async () => {
+      try {
+        // Check enrollment status for each course
+        const enrolledStatus = await Promise.all(
+          selectedCourses.map(async (selectedCourse) => {
+            const res = await TokenRequest.get(
+              `/enrollments/check-enrollment/${selectedCourse.id}`
+            );
+            return {
+              courseId: selectedCourse.id,
+              enrolled: res.data.enrolled,
+            };
+          })
+        );
+
+        const isEnrolled = enrolledStatus.some((status) => status.enrolled);
+        setEnrollment(isEnrolled);
+      } catch (error) {
+        console.error("Error checking enrollment for selected courses:", error);
+      }
+    };
+
+    fetchEnrollmentStatus();
   };
 
   const handleRemove = (course) => {
@@ -60,7 +99,6 @@ const Payment = () => {
         sessionId: response.data.id,
       });
       if (result.error) {
-        // Handle payment errors
         console.error(result.error);
       }
     }
@@ -109,16 +147,7 @@ const Payment = () => {
     fetchUserData();
     window.scrollTo(0, 0);
   }, [categorySecondId]);
-  // const CheckEnrollment = async (courseId) => {
-  //   try {
-  //     const res = await TokenRequest.get(
-  //       `/enrollments/check-enrollment/${courseId}`
-  //     );
-  //     setEnrollment(res.data);
-  //   } catch (error) {
-  //     console.error("Error checking enrollment:", error);
-  //   }
-  // };
+
   const sample = [
     {
       hoa_don: "HD001",
@@ -192,8 +221,6 @@ const Payment = () => {
                 </li>
               ))}
           </ul>
-
-          {/* {context} */}
           <div>
             <div className=" flex flex-col items-center">
               <div className="p-1 w-1/2 bg-[#ebeced] flex justify-between relative">
@@ -279,39 +306,48 @@ const Payment = () => {
                             Array.isArray(categoryFirst.categorySeconds) &&
                             categoryFirst.categorySeconds.map(
                               (categorySecond) =>
-                                categorySecond.courses.map((course) =>
-                                  course.coursePrice ? (
-                                    <li
-                                      key={course.id}
-                                      className="group hover:bg-blue-400 hover:text-white flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow-sm mb-4 relative"
-                                    >
-                                      <div className="">
-                                        <span className="text-sm block font-sans">
-                                          {course.courseName}
-                                        </span>
-                                        <span className="text-sm font-sans text-gray-400">
-                                          {course.user.username}
-                                        </span>
-                                      </div>
-                                      <span className="text-lg font-bold">
-                                        {course.coursePrice} đ
+                                categorySecond.courses.map((course) => (
+                                  <li
+                                    key={course.id}
+                                    className={`group hover:bg-blue-400 hover:text-white flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow-sm mb-4 relative ${
+                                      isEnrollment &&
+                                      course.id === isEnrollment.courseId
+                                        ? "enrolled-course"
+                                        : ""
+                                    }`}
+                                  >
+                                    <div className="">
+                                      <span className="text-sm block font-sans">
+                                        {course.courseName}
                                       </span>
+                                      <span className="text-sm font-sans text-gray-400">
+                                        {course.user.username}
+                                      </span>
+                                    </div>
+                                    <span className="text-lg font-bold">
+                                      {course.coursePrice} đ
+                                    </span>
 
-                                      {isEnrollment.enrolled ? (
-                                        <span className="text-green-500">
-                                          Enrolled
-                                        </span>
-                                      ) : (
-                                        <button
-                                          onClick={() => handleSelect(course)}
-                                          className="hidden group-hover:inline-block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-4 py-1 rounded-md"
-                                        >
-                                          Select
-                                        </button>
-                                      )}
-                                    </li>
-                                  ) : null
-                                )
+                                    {isEnrollment ||
+                                    course.id === isEnrollment.courseId ? (
+                                      <span className="text-red-500">
+                                        Enrolled
+                                      </span>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleSelect(course)}
+                                        className={`hidden group-hover:inline-block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-4 py-1 rounded-md ${
+                                          isEnrollment &&
+                                          course.id === isEnrollment.courseId
+                                            ? "cursor-not-allowed opacity-50"
+                                            : ""
+                                        }`}
+                                      >
+                                        Select
+                                      </button>
+                                    )}
+                                  </li>
+                                ))
                             )
                         )}
                     </ul>

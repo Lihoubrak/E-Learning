@@ -232,52 +232,58 @@ const SpecificCourse = () => {
                       </div>
                       {lessonOpen[lesson.id] && (
                         <ul className="flex flex-col gap-2 py-3">
-                          {lesson.subLessions.map((sublesson) => (
-                            <li
-                              key={sublesson.id}
-                              className="px-5 cursor-pointer text-gray-700 transition-all duration-100 hover:text-black"
-                            >
-                              {token && isEnrollment ? (
-                                <Link
-                                  to={`/learnings/sublesson/${sublesson.id}`}
-                                >
-                                  <h1 className="font-bold">
+                          {lesson.subLessions
+                            .slice()
+                            .reverse()
+                            .map((sublesson) => (
+                              <li
+                                key={sublesson.id}
+                                className="px-5 cursor-pointer text-gray-700 transition-all duration-100 hover:text-black"
+                              >
+                                {token && isEnrollment ? (
+                                  <Link
+                                    to={`/learnings/sublesson/${sublesson.id}`}
+                                  >
+                                    <h1 className="font-bold">
+                                      {sublesson.subLessionTitle}
+                                    </h1>
+                                  </Link>
+                                ) : (
+                                  <h1
+                                    onClick={handleOpen}
+                                    className="font-bold"
+                                  >
                                     {sublesson.subLessionTitle}
                                   </h1>
-                                </Link>
-                              ) : (
-                                <h1 onClick={handleOpen} className="font-bold">
-                                  {sublesson.subLessionTitle}
-                                </h1>
-                              )}
+                                )}
 
-                              <div className="flex gap-x-3">
-                                <div className="flex items-center gap-1">
-                                  <RiVideoFill
-                                    color="blue"
-                                    className="opacity-60"
-                                  />
-                                  <span>{sublesson.subLessionTime}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <a href={sublesson.subLessionFile} download>
-                                    <RiFileDownloadFill
+                                <div className="flex gap-x-3">
+                                  <div className="flex items-center gap-1">
+                                    <RiVideoFill
                                       color="blue"
                                       className="opacity-60"
                                     />
-                                  </a>
-                                  <span>{1}</span>
+                                    <span>{sublesson.subLessionTime}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <a href={sublesson.subLessionFile} download>
+                                      <RiFileDownloadFill
+                                        color="blue"
+                                        className="opacity-60"
+                                      />
+                                    </a>
+                                    <span>{1}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <RiEyeFill
+                                      color="blue"
+                                      className="opacity-60"
+                                    />
+                                    <span>{sublesson.subLessionView}</span>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <RiEyeFill
-                                    color="blue"
-                                    className="opacity-60"
-                                  />
-                                  <span>{sublesson.subLessionView}</span>
-                                </div>
-                              </div>
-                            </li>
-                          ))}
+                              </li>
+                            ))}
                           {lesson.quizzes?.map((quizz) => (
                             <li
                               key={quizz.id}
@@ -463,12 +469,13 @@ const SpecificCourse = () => {
               <Button onClick={handleClose} color="primary" className="mr-4">
                 Hủy
               </Button>
+
               <Link
                 to={
                   token
                     ? isEnrollment
                       ? `/learnings/sublesson/1`
-                      : `/payment/${courses.categorySecondId}`
+                      : `/payment/course/${courses.id}/category/${courses.categorySecondId}`
                     : `/register`
                 }
               >

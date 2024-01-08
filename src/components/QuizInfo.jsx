@@ -13,22 +13,14 @@ const QuizInfo = ({
     return `${minutes} phút ${seconds} giây`;
   };
   return (
-    <div>
-      <div className="max-w-2xl mx-auto  mb-8 p-4 bg-white rounded-md shadow-md">
+    <div className="pt-5">
+      <div className="max-w-2xl mx-auto  mb-8 p-4  bg-white rounded-md border">
         <h1 className="text-3xl font-bold text-red-500 mb-4">
           {totalMarks} điểm
         </h1>
         <p className="text-gray-700 mb-4">
-          Chào Bạn! Điểm bài kiểm tra đầu vào của bạn đang ở mức: dưới 60 điểm
-          (theo thang điểm 100). Với kết quả này, HOCMAI thấy rằng Bạn chưa nắm
-          vững kiến thức căn bản, khả năng thực hành và vận dụng kiến thức vào
-          giải bài tập còn chưa tốt. Vì vậy, Bạn cần xây dựng một lộ trình học
-          tập hợp lý ngay từ bây giờ để có thể đạt được thành tích tốt nhất
-          trong bài thi tốt nghiệp THPT. HOCMAI khuyên Bạn nên trang bị và hệ
-          thống lại ngay kiến thức nền tảng, căn bản của môn học ở bậc phổ thông
-          trước khi bước vào quá trình ôn luyện toàn diện. Bạn có thể tham khảo
-          chương trình Học tốt của HOCMAI để đăng kí học. Chúc Bạn học tốt và
-          thành công!
+          Chào bạn! Đây là điểm của bạn từ bài kiểm. Hãy xem kết quả chi tiết
+          dưới đây:
         </p>
         <div className="mb-4">
           <button className="bg-blue-500 text-white py-2 px-4 rounded-full">
